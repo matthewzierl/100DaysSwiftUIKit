@@ -23,6 +23,7 @@ class ViewController: UIViewController {
         
         self.view.backgroundColor = .white
         
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(checkScore))
         if let navigationBar = self.navigationController?.navigationBar {
             let appearance = UINavigationBarAppearance()
             appearance.backgroundColor = .white
@@ -84,6 +85,12 @@ class ViewController: UIViewController {
         if score > highScore {
             highScore = score
         }
+    }
+    
+    @objc func checkScore() {
+        let ac = UIAlertController(title: "Score:", message: "\(score)", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "cancel", style: .default))
+        present(ac, animated: true)
     }
     
 }

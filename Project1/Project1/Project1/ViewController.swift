@@ -46,6 +46,9 @@ class ViewController: UITableViewController {
         self.title = "cool tattoos(^^)"
         self.navigationController?.navigationBar.prefersLargeTitles = true
         
+        
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(shareApp))
+        
         // Do any additional setup after loading the view.
         let fm = FileManager.default
         let path = Bundle.main.resourcePath!
@@ -102,5 +105,12 @@ class ViewController: UITableViewController {
             // 3: now push it onto the navigation controller
             navigationController?.pushViewController(detailView, animated: true)
         }
+    }
+    
+    @objc func shareApp() {
+        let vc = UIActivityViewController(activityItems: ["Check out this app! Tattoos are cool!"], applicationActivities:  [])
+//        vc.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        vc.popoverPresentationController?.sourceItem = navigationItem.rightBarButtonItem
+        present(vc, animated: true)
     }
 }

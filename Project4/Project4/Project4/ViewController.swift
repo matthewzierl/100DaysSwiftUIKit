@@ -21,6 +21,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
     
     var webView: WKWebView!
     var progressView: UIProgressView!
+    var websites = ["apple.com", "swift.org"]
     
     override func loadView() {
         webView = WKWebView() // create new instance of web browser component
@@ -53,25 +54,39 @@ class ViewController: UIViewController, WKNavigationDelegate {
         progressView.sizeToFit() // force the progressView to fit it's content size fully
         let progressButton = UIBarButtonItem(customView: progressView) // wrap progress view in a UIBarButtonItem
         
-        toolbarItems = [progressButton, spacer, refresh]
+        
+        let backButton = UIBarButtonItem(image: UIImage(systemName: "arrowshape.left"), style: .plain, target: self, action: #selector(navigateBack))
+        let forwardButton = UIBarButtonItem(image: UIImage(systemName: "arrowshape.right"), style: .plain, target: self, action: #selector(navigateForward))
+        
+        toolbarItems = [backButton, forwardButton, spacer, progressButton, spacer, refresh]
         navigationController?.isToolbarHidden = false
         
         
-        let url = URL(string: "https://www.swift.org/documentation/")!
+        let url = URL(string: "https://" + websites[0])!
         webView.load(URLRequest(url: url))
         webView.allowsBackForwardNavigationGestures = true
     }
     
     @objc func openTapped() {
         let ac = UIAlertController(title: "Open page...", message: nil, preferredStyle: .actionSheet)
-        ac.addAction(UIAlertAction(title: "apple.com", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "swift.org", style: .default, handler: openPage))
+        
+        for website in websites {
+            ac.addAction(UIAlertAction(title: website, style: .default, handler: openPage)) // handler passes a reference of openPage so that whenever the action is called, it calls openPage with it's necessary parameters
+        }
         ac.addAction(UIAlertAction(title: "cancel", style: .cancel)) // no need for handler
         
         ac.popoverPresentationController?.sourceItem = navigationItem.rightBarButtonItem // ipad
         
         present(ac, animated: true)
         
+    }
+    
+    @objc func navigateBack() {
+        webView.goBack()
+    }
+    
+    @objc func navigateForward() {
+        webView.goForward()
     }
     
     func openPage(action: UIAlertAction) {
@@ -92,6 +107,32 @@ class ViewController: UIViewController, WKNavigationDelegate {
         if keyPath == "estimatedProgress" {
             progressView.progress = Float(webView.estimatedProgress)
         }
+    }
+    
+    /*
+    Decide to allow or cancel a navigation
+     */
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        let url = navigationAction.request.url // navigationAction contains info about an action that causes navigation to occur
+        
+        if let host = url?.host() { // 'host' is website domain of url
+            for website in websites {
+                if host.contains(website) {
+                    /*
+                     3 Cases:
+                        .cancel
+                        .allow
+                        .download
+                     */
+                    decisionHandler(.allow)
+                    return
+                }
+            }
+            let ac = UIAlertController(title: "Navigation Prohibited", message: "Website: \(host) is not allowed", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Okay", style: .cancel))
+            present(ac, animated: true)
+        }
+        decisionHandler(.cancel)
     }
 
 

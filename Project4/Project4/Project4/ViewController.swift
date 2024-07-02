@@ -21,7 +21,8 @@ class ViewController: UIViewController, WKNavigationDelegate {
     
     var webView: WKWebView!
     var progressView: UIProgressView!
-    var websites = ["apple.com", "swift.org"]
+    var websites: [String]?
+    var selectedWebsite: String?
     
     override func loadView() {
         webView = WKWebView() // create new instance of web browser component
@@ -61,14 +62,20 @@ class ViewController: UIViewController, WKNavigationDelegate {
         toolbarItems = [backButton, forwardButton, spacer, progressButton, spacer, refresh]
         navigationController?.isToolbarHidden = false
         
+        if let selectedWebsite = selectedWebsite {
+            let url = URL(string: "https://" + selectedWebsite)!
+            webView.load(URLRequest(url: url))
+            webView.allowsBackForwardNavigationGestures = true
+        }
         
-        let url = URL(string: "https://" + websites[0])!
-        webView.load(URLRequest(url: url))
-        webView.allowsBackForwardNavigationGestures = true
     }
     
     @objc func openTapped() {
         let ac = UIAlertController(title: "Open page...", message: nil, preferredStyle: .actionSheet)
+        
+        guard let websites = websites else {
+            return
+        }
         
         for website in websites {
             ac.addAction(UIAlertAction(title: website, style: .default, handler: openPage)) // handler passes a reference of openPage so that whenever the action is called, it calls openPage with it's necessary parameters
@@ -114,6 +121,9 @@ class ViewController: UIViewController, WKNavigationDelegate {
      */
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         let url = navigationAction.request.url // navigationAction contains info about an action that causes navigation to occur
+        guard let websites = websites else {
+            return
+        }
         
         if let host = url?.host() { // 'host' is website domain of url
             for website in websites {

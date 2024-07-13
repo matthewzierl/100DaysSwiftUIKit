@@ -23,6 +23,7 @@ class ViewController: UIViewController {
             scoreLabel.text = "Score: \(score)"
         }
     }
+    var numSolved = 0
     var level = 1
     
     
@@ -81,6 +82,8 @@ class ViewController: UIViewController {
         
         let buttonsView = UIView()
         buttonsView.translatesAutoresizingMaskIntoConstraints = false
+        buttonsView.layer.borderWidth = 2
+        buttonsView.layer.borderColor = CGColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)
         view.addSubview(buttonsView)
         
         
@@ -174,11 +177,6 @@ class ViewController: UIViewController {
             }
         }
         
-        cluesLabel.backgroundColor = .red
-        answersLabel.backgroundColor = .blue
-        scoreLabel.backgroundColor = .green
-        currentAnswer.backgroundColor = .systemPink
-        buttonsView.backgroundColor = .cyan
         
     }
 
@@ -199,11 +197,8 @@ class ViewController: UIViewController {
     @objc func submitTapped(_ sender: UIButton) {
         guard let answerText = currentAnswer.text else { return }
         
-        print("submit was tapped")
-        print(solutions)
         
         if let solutionPosition = solutions.firstIndex(of: answerText) { // They provided a correct answer
-            print("printed correct answer")
             activatedButtons.removeAll()
             
             var splitAnswers = answersLabel.text?.components(separatedBy: "\n") // split into array
@@ -214,11 +209,17 @@ class ViewController: UIViewController {
             
             currentAnswer.text = ""
             score += 1
-            if (score % 7 == 0) {
+            numSolved += 1
+            if (numSolved % 7 == 0) {
                 let ac = UIAlertController(title: "Well done", message: "Are you ready for the next level?", preferredStyle: .alert)
                 ac.addAction(UIAlertAction(title: "Let's go!", style: .default, handler: levelUp))
                 present(ac, animated: true)
             }
+        } else {
+            score -= 1
+            let ac = UIAlertController(title: "Incorrect", message: "You provided an incorrect answer (Score -1). Please try again.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Acknowledge", style: .default))
+            present(ac, animated: true)
         }
     }
     
@@ -233,6 +234,7 @@ class ViewController: UIViewController {
     
     func levelUp(action: UIAlertAction) {
         level += 1
+        numSolved = 0
         
         solutions.removeAll(keepingCapacity: true)
         loadLevel()

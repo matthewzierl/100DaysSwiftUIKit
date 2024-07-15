@@ -49,18 +49,22 @@ class ViewController: UITableViewController {
         
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(shareApp))
         
-        // Do any additional setup after loading the view.
-        let fm = FileManager.default
-        let path = Bundle.main.resourcePath!
-        let items = try! fm.contentsOfDirectory(atPath: path)
         
-        for item in items {
-            if item.hasSuffix(".jpeg") {
-                pictures.append(item)
+        DispatchQueue.global(qos: .userInitiated).async {
+            [weak self] in
+            // Do any additional setup after loading the view.
+            let fm = FileManager.default
+            let path = Bundle.main.resourcePath!
+            let items = try! fm.contentsOfDirectory(atPath: path)
+            
+            for item in items {
+                if item.hasSuffix(".jpeg") {
+                    self?.pictures.append(item)
+                }
             }
+            
+            self?.pictures.sort(using: sortPic(order: .forward))
         }
-        
-        pictures.sort(using: sortPic(order: .forward))
     }
     
     /*

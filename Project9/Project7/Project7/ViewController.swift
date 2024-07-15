@@ -84,7 +84,6 @@ class ViewController: UITableViewController {
                 return
             }
         }
-        performSelector(inBackground: #selector(showError), with: nil) // run on main thread if block above fails
     }
     
     @objc func filterResults() {
@@ -148,7 +147,7 @@ class ViewController: UITableViewController {
         present(ac, animated: true)
     }
     
-    @objc func showError() {
+    func showError() {
 //        DispatchQueue.main.async { [weak self] in
 //            
 //            let ac = UIAlertController(title: "Problem loading data", message: "Please check your connection and try again.", preferredStyle: .alert)

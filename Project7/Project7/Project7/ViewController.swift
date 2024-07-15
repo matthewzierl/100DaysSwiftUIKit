@@ -12,8 +12,8 @@ class ViewController: UITableViewController {
     var games = [VideoGame]()
     var filteredGames = [VideoGame]()
     var urlString: String? = nil
-    var selectedGenre: String? = nil
-    var selectedPlatform: String? = nil
+    var selectedGenre = ""
+    var selectedPlatform = ""
     var showFilteredResults: Bool = false
 
     override func viewDidLoad() {
@@ -32,15 +32,20 @@ class ViewController: UITableViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Credits", image: nil, target: self, action: #selector(showCredits))
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(filterResults))
             
-        
-        if let url = URL(string: urlString!) { // convert string to URL
-            if let data = try? Data(contentsOf: url) { // convert URL to data instance
-                // we're okay to parse!
-                parse(json: data)
-                return
+        DispatchQueue.global(qos: .userInitiated).async {
+            [weak self] in
+            guard let urlString = self?.urlString else {return}
+            
+            if let url = URL(string: urlString) { // convert string to URL
+                if let data = try? Data(contentsOf: url) { // convert URL to data instance
+                    // we're okay to parse!
+                    self?.parse(json: data)
+                    return
+                }
+            } else {
+                self?.showError()
             }
         }
-        showError()
     }
     
     @objc func filterResults() {
@@ -54,14 +59,14 @@ class ViewController: UITableViewController {
             [weak self, weak ac] _ in
             
             if let genreField = ac?.textFields?[0] {
-                self?.selectedGenre = genreField.text
+                self?.selectedGenre = genreField.text ?? ""
             }
             if let platformField = ac?.textFields?[1] {
-                self?.selectedPlatform = platformField.text
+                self?.selectedPlatform = platformField.text ?? ""
             }
             self?.showFilteredResults = true
             self?.updateFilteredList()
-            self?.tableView?.reloadData()
+//            self?.tableView?.reloadData()
         }
         
         ac.addAction(filterAction)
@@ -70,30 +75,49 @@ class ViewController: UITableViewController {
     }
     
     func updateFilteredList() {
-        
-        filteredGames.removeAll() // clear previous list
-        
-        if selectedGenre! != "" && selectedPlatform! != "" {
-            for game in games {
-                if game.genres.contains(selectedGenre!) && game.platforms.contains(selectedPlatform!) {
-                    filteredGames.append(game)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let games = self?.games else {return}
+            guard let selectedGenre = self?.selectedGenre else {return}
+            guard let selectedPlatform = self?.selectedPlatform else {return}
+            
+            // NOTE: for some reason, if i use guard let on the array i'm actually trying to modify (filteredGames) it only
+            // modiifies a copy of the array, so guard let only provides a copy, not reference to original array
+            
+            
+            self?.filteredGames.removeAll() // clear previous list
+            
+            if selectedGenre != "" && selectedPlatform != "" {
+                for game in games {
+                    if game.genres.contains(selectedGenre) && game.platforms.contains(selectedPlatform) {
+                        DispatchQueue.main.async {
+                            self?.filteredGames.append(game)
+                        }
+                    }
                 }
-            }
-        } else if selectedGenre! != "" {
-            for game in games {
-                if game.genres.contains(selectedGenre!) {
-                    filteredGames.append(game)
+            } else if selectedGenre != "" {
+                for game in games {
+                    if game.genres.contains(selectedGenre) {
+                        DispatchQueue.main.async {
+                            self?.filteredGames.append(game)
+                        }
+                    }
                 }
-            }
-        } else if selectedPlatform! != "" {
-            for game in games {
-                if game.platforms.contains(selectedPlatform!) {
-                    filteredGames.append(game)
+            } else if selectedPlatform != "" {
+                for game in games {
+                    if game.platforms.contains(selectedPlatform) {
+                        DispatchQueue.main.async {
+                            self?.filteredGames.append(game)
+                        }
+                    }
                 }
+            } else {
+                self?.showFilteredResults = false // user put nothing in the filter, return to normal
             }
-        } else {
-            showFilteredResults = false // user put nothing in the filter, return to normal
-            return // don't do anything, nil for both
+            DispatchQueue.main.async {
+                guard let filteredGames = self?.filteredGames else {return}
+                print("Before reloadData, there are \(filteredGames.count) games in filtered list")
+                self?.tableView.reloadData()
+            }
         }
     }
     
@@ -105,17 +129,21 @@ class ViewController: UITableViewController {
     }
     
     func showError() {
-        let ac = UIAlertController(title: "Problem loading data", message: "Please check your connection and try again.", preferredStyle: .alert)
-        ac.addAction(UIAlertAction(title: "Confirm", style: .default))
-        present(ac, animated: true)
+        DispatchQueue.main.async { [weak self] in
+            let ac = UIAlertController(title: "Problem loading data", message: "Please check your connection and try again.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Confirm", style: .default))
+            self?.present(ac, animated: true)
+        }
     }
     
     func parse(json: Data) {
-        let decoder = JSONDecoder()
-        
-        if let jsonGames = try? decoder.decode([VideoGame].self, from: json) {
-            games = jsonGames
-            tableView.reloadData()
+        DispatchQueue.main.async { [weak self] in
+            let decoder = JSONDecoder()
+            
+            if let jsonGames = try? decoder.decode([VideoGame].self, from: json) {
+                self?.games = jsonGames
+                self?.tableView.reloadData()
+            }
         }
     }
     
@@ -144,14 +172,20 @@ class ViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if showFilteredResults {
+            print("Showing filtered with: \(filteredGames.count) count")
             return filteredGames.count
         }
+        print("Showing games with: \(games.count) count")
         return games.count
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let vc = DetailViewController()
-        vc.detailItem = games[indexPath.row]
+        if showFilteredResults {
+            vc.detailItem = filteredGames[indexPath.row]
+        } else {
+            vc.detailItem = games[indexPath.row]
+        }
         navigationController?.pushViewController(vc, animated: true)
     }
 

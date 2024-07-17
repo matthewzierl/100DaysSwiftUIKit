@@ -12,6 +12,15 @@ class ViewController: UIViewController {
     let hangmanStages = [
     """
        +----+
+       |
+       |
+       |
+       |
+       |
+    ===========
+    """,
+    """
+       +----+
        |         |
        |         O
        |
@@ -82,6 +91,10 @@ class ViewController: UIViewController {
     var letterButtons = [UIButton]()
     var activatedButtons = [UIButton]()
     var buttonsView: UIView!
+    var urlString: String? = nil
+    var wordBank = [String]()
+    var index = 0
+    var currentWord: String = "Loading word..."
     
     
     override func loadView() {
@@ -91,18 +104,19 @@ class ViewController: UIViewController {
         
         hangmanLabel = UILabel()
         hangmanLabel.translatesAutoresizingMaskIntoConstraints = false
-        hangmanLabel.text = hangmanStages[6] // always start at 0th stage
+        hangmanLabel.text = hangmanStages[0] // always start at 0th stage
         hangmanLabel.numberOfLines = 0
         view.addSubview(hangmanLabel)
         
         wordLabel = UILabel()
         wordLabel.translatesAutoresizingMaskIntoConstraints = false
-        wordLabel.text = "WORD"
+        wordLabel.font = UIFont.systemFont(ofSize: 36)
+        wordLabel.text = "Loading word..."
         view.addSubview(wordLabel)
         
         usedLetters = UILabel()
         usedLetters.translatesAutoresizingMaskIntoConstraints = false
-        usedLetters.text = "USED LETTERS"
+        usedLetters.text = ""
         usedLetters.numberOfLines = 0
         view.addSubview(usedLetters)
         
@@ -114,8 +128,7 @@ class ViewController: UIViewController {
         
         buttonsView = UIView()
         buttonsView.translatesAutoresizingMaskIntoConstraints = false
-        buttonsView.layer.borderWidth = 2
-        buttonsView.layer.borderColor = CGColor(red: 0, green: 0, blue: 0, alpha: 0)
+        buttonsView.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
         view.addSubview(buttonsView)
         
         
@@ -143,52 +156,161 @@ class ViewController: UIViewController {
             
             wordLabel.topAnchor.constraint(
                 equalTo: hangmanLabel.bottomAnchor,
-                constant: 20),
+                constant: 10),
             wordLabel.centerXAnchor.constraint(
                 equalTo: view.layoutMarginsGuide.centerXAnchor),
             
             providedAnswer.topAnchor.constraint(
                 equalTo: wordLabel.bottomAnchor,
-                constant: 20),
+                constant: 10),
             providedAnswer.centerXAnchor.constraint(
                 equalTo: wordLabel.centerXAnchor),
             
             buttonsView.topAnchor.constraint(
                 equalTo: providedAnswer.bottomAnchor,
-                constant: 20),
+                constant: 10),
             buttonsView.widthAnchor.constraint(
                 equalTo: view.layoutMarginsGuide.widthAnchor,
-                multiplier: 0.95),
+                constant: 0.95),
             buttonsView.centerXAnchor.constraint(
-                equalTo: providedAnswer.centerXAnchor)
+                equalTo: providedAnswer.centerXAnchor),
+            buttonsView.bottomAnchor.constraint(
+                equalTo: view.layoutMarginsGuide.bottomAnchor),
             
         ])
         
-        let width = 150
-        let height = 80
-        
-        for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" {
+        for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" { // Create buttons
             let letterButton = UIButton()
+            letterButton.titleLabel?.font = UIFont.systemFont(ofSize: 24)
+            letterButton.titleLabel?.textColor = .blue
             letterButton.setTitle(String(letter), for: .normal)
-            letterButton.backgroundColor = .clear
+//            letterButton.setTitleShadowColor(.black, for: .normal)
+            letterButton.backgroundColor = UIColor(white: 0.9, alpha: 1)
             letterButton.layer.cornerRadius = 5
             letterButton.layer.borderWidth = 1
             letterButton.layer.borderColor = UIColor.black.cgColor
+            letterButton.addTarget(self, action: #selector(letterTapped), for: .touchUpInside)
             letterButtons.append(letterButton)
+            buttonsView.addSubview(letterButton)
         }
         
-        hangmanLabel.backgroundColor = .red
-        usedLetters.backgroundColor = .blue
+        
+        
+        
+//        hangmanLabel.backgroundColor = .red
+//        usedLetters.backgroundColor = .blue
+//        buttonsView.layer.backgroundColor = CGColor(red: 0, green: 1, blue: 0, alpha: 1)
 
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        loadGame()
     }
     
-    @objc func letterTapped() {
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
         
+        let buttonWidth: CGFloat = 70
+        let buttonHeight: CGFloat = 35
+        let padding: CGFloat = 5
+        
+        let MAX_COLUMNS = Int(buttonsView.frame.width / buttonWidth)
+        let MAX_ROWS = Int(ceil(Double(letterButtons.count) / Double(MAX_COLUMNS))) // guarantee 26 letters
+        
+        print(MAX_ROWS)
+        print(MAX_COLUMNS)
+        
+        // Remove existing constraints
+        buttonsView.subviews.forEach { $0.removeFromSuperview() }
+        
+        var row = 0
+        var column = 0
+        
+        for button in letterButtons {
+            
+            
+            if column >= MAX_COLUMNS {
+                column = 0
+                row += 1
+            }
+            
+            if row >= MAX_ROWS {
+                break
+            }
+            
+            if button.superview != buttonsView {
+                buttonsView.addSubview(button)
+            }
+            
+            button.translatesAutoresizingMaskIntoConstraints = false
+            
+            NSLayoutConstraint.activate([
+                button.widthAnchor.constraint(equalToConstant: buttonWidth - padding),
+                button.heightAnchor.constraint(equalToConstant: buttonHeight - padding),
+                button.leadingAnchor.constraint(equalTo: buttonsView.leadingAnchor, constant: CGFloat(column) * buttonWidth + padding),
+                button.topAnchor.constraint(equalTo: buttonsView.topAnchor, constant: CGFloat(row) * buttonHeight + padding)
+            ])
+            
+            column += 1
+        }
+    }
+    
+    func loadGame() {
+        let urlString = "https://raw.githubusercontent.com/MichaelWehar/Public-Domain-Word-Lists/master/5000-more-common.txt"
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let url = URL(string: urlString) else {
+                self?.showError()
+                return
+            }
+            
+            do {
+                let data = try Data(contentsOf: url)
+                if let contents = String(data: data, encoding: .utf8) {
+                    var words = contents.components(separatedBy: .newlines).filter { !$0.isEmpty }
+                    
+                    words.shuffle()
+                    
+                    DispatchQueue.main.async {
+                        self?.startGame(with: words)
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self?.showError()
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self?.showError()
+                }
+            }
+        }
+    }
+    
+    func startGame(with wordBank: [String]) {
+        // Resetting game
+        currentWord = wordBank[index]
+        hangmanLabel.text = hangmanStages[0]
+        usedLetters.text = ""
+        wordLabel.text = currentWord
+        for button in letterButtons {
+            button.isHidden = false
+        }
+        // End of resetting game
+    }
+    
+    
+    func showError() {
+        let ac = UIAlertController(title: "Problem loading words", message: "Please restart", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "Acknowledge", style: .default))
+        present(ac, animated: true)
+    }
+
+    
+    @objc func letterTapped(_ sender: UIButton) {
+        print(sender.titleLabel?.text)
     }
 
 

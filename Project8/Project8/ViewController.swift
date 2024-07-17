@@ -173,7 +173,7 @@ class ViewController: UIViewController {
                 
                 buttonsView.addSubview(letterButton) // add to wrapped view
                 
-                letterButtons.append(letterButton) // add to array of buttons
+                letterButtons.append(letterButton) // add to array of buttons.
             }
         }
         

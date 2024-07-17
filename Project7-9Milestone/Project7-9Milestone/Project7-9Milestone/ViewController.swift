@@ -269,7 +269,11 @@ class ViewController: UIViewController {
             do {
                 let data = try Data(contentsOf: url)
                 if let contents = String(data: data, encoding: .utf8) {
-                    var words = contents.components(separatedBy: .newlines).filter { !$0.isEmpty }
+                    var words = contents
+                        .components(separatedBy: .newlines)
+                        .filter { !$0.isEmpty }
+                        .map { $0.uppercased() } // Convert each word to uppercase
+                    
                     
                     words.shuffle()
                     
@@ -294,7 +298,8 @@ class ViewController: UIViewController {
         currentWord = wordBank[index]
         hangmanLabel.text = hangmanStages[0]
         usedLetters.text = ""
-        wordLabel.text = currentWord
+        print(currentWord)
+        wordLabel.text = currentWord.map { _ in "_" }.joined(separator: " ")
         for button in letterButtons {
             button.isHidden = false
         }
@@ -310,8 +315,30 @@ class ViewController: UIViewController {
 
     
     @objc func letterTapped(_ sender: UIButton) {
-        print(sender.titleLabel?.text)
+        guard let buttonTitle = sender.titleLabel?.text, buttonTitle.count == 1 else {
+            return
+        }
+        
+        let selection = Character(buttonTitle)
+        
+        if currentWord.contains(selection) {
+            updateDisplayedWord(with: selection)
+        }
     }
+    
+    func updateDisplayedWord(with character: Character) {
+        var updatedWord = Array(wordLabel.text ?? "")
+        let currentWordArray = Array(currentWord)
+        
+        for (index, char) in currentWordArray.enumerated() {
+            if char == character {
+                updatedWord[index * 2] = character // Multiply by 2 to account for spaces
+            }
+        }
+        
+        wordLabel.text = String(updatedWord)
+    }
+
 
 
 }

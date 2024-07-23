@@ -75,7 +75,7 @@ class ViewController: UIViewController {
     """,
     """
        +----+
-       |         |
+       |         |  GAME OVER.
        |        O
        |       / | \\ \\
        |       /   \\ \\
@@ -93,18 +93,19 @@ class ViewController: UIViewController {
     var buttonsView: UIView!
     var urlString: String? = nil
     var wordBank = [String]()
-    var index = 0
+    var index = 0 // index for wordbank
     var currentWord: String = "Loading word..."
+    var currentStage = 0
     
     
     override func loadView() {
         
         view = UIView() // parent of view, buttons, labels, etc.
-        view.backgroundColor = .white
+//        view.backgroundColor = .white
         
         hangmanLabel = UILabel()
         hangmanLabel.translatesAutoresizingMaskIntoConstraints = false
-        hangmanLabel.text = hangmanStages[0] // always start at 0th stage
+        hangmanLabel.text = hangmanStages[currentStage] // always start at 0th stage
         hangmanLabel.numberOfLines = 0
         view.addSubview(hangmanLabel)
         
@@ -219,8 +220,8 @@ class ViewController: UIViewController {
         let MAX_COLUMNS = Int(buttonsView.frame.width / buttonWidth)
         let MAX_ROWS = Int(ceil(Double(letterButtons.count) / Double(MAX_COLUMNS))) // guarantee 26 letters
         
-        print(MAX_ROWS)
-        print(MAX_COLUMNS)
+//        print(MAX_ROWS)
+//        print(MAX_COLUMNS)
         
         // Remove existing constraints
         buttonsView.subviews.forEach { $0.removeFromSuperview() }
@@ -277,6 +278,8 @@ class ViewController: UIViewController {
                     
                     words.shuffle()
                     
+                    self?.wordBank = words
+                    
                     DispatchQueue.main.async {
                         self?.startGame(with: words)
                     }
@@ -295,8 +298,10 @@ class ViewController: UIViewController {
     
     func startGame(with wordBank: [String]) {
         // Resetting game
+        print(wordBank.count)
         currentWord = wordBank[index]
-        hangmanLabel.text = hangmanStages[0]
+        currentStage = 0
+        hangmanLabel.text = hangmanStages[currentStage]
         usedLetters.text = ""
         print(currentWord)
         wordLabel.text = currentWord.map { _ in "_" }.joined(separator: " ")
@@ -323,7 +328,16 @@ class ViewController: UIViewController {
         
         if currentWord.contains(selection) {
             updateDisplayedWord(with: selection)
+        } else {
+            currentStage += 1
+            usedLetters.text?.append("\(selection) ")
+            hangmanLabel.text? = hangmanStages[currentStage]
         }
+        
+        sender.isHidden = true
+        
+        checkProgress()
+        
     }
     
     func updateDisplayedWord(with character: Character) {
@@ -337,6 +351,32 @@ class ViewController: UIViewController {
         }
         
         wordLabel.text = String(updatedWord)
+    }
+    
+    /*
+        Check if current wordLable contains '-'
+        Check if currentStage is equal to the last stage, then end game
+     */
+    func checkProgress() {
+        let currentProgress = wordLabel.text ?? "_"
+        if currentProgress.contains("_") {
+            if (currentStage == 7) {
+                let ac = UIAlertController(title: "You Failed", message: "You coundn't guess the word", preferredStyle: .alert)
+                ac.addAction(UIAlertAction(title: "Try again", style: .default))
+                present(ac, animated: true)
+                index += 1
+                startGame(with: wordBank)
+            }
+            return
+        }
+        
+        let ac = UIAlertController(title: "YOU WON!!", message: "You guessed the word correctly", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "Try again", style: .default))
+        present(ac, animated: true)
+        
+        
+        index += 1
+        startGame(with: wordBank)
     }
 
 

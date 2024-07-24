@@ -22,15 +22,6 @@ class ViewController: UIViewController {
     """
        +----+
        |         |
-       |         O
-       |
-       |
-       |
-    ===========
-    """,
-    """
-       +----+
-       |         |
        |        O
        |
        |
@@ -69,7 +60,7 @@ class ViewController: UIViewController {
        |         |
        |        O
        |       / | \\ \\
-       |       /   \\
+       |       /
        |
     ===========
     """,
@@ -183,10 +174,9 @@ class ViewController: UIViewController {
         for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" { // Create buttons
             let letterButton = UIButton()
             letterButton.titleLabel?.font = UIFont.systemFont(ofSize: 24)
-            letterButton.titleLabel?.textColor = .blue
             letterButton.setTitle(String(letter), for: .normal)
 //            letterButton.setTitleShadowColor(.black, for: .normal)
-            letterButton.backgroundColor = UIColor(white: 0.9, alpha: 1)
+            letterButton.backgroundColor = UIColor(white: 0.84, alpha: 1)
             letterButton.layer.cornerRadius = 5
             letterButton.layer.borderWidth = 1
             letterButton.layer.borderColor = UIColor.black.cgColor
@@ -207,6 +197,10 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Submit", image: nil, target: self, action: #selector(tryWord))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.refresh, target: self, action: #selector(startOver))
+        
         loadGame()
     }
     
@@ -255,6 +249,27 @@ class ViewController: UIViewController {
             ])
             
             column += 1
+        }
+    }
+    
+    @objc func startOver() {
+        index += 1
+        startGame(with: wordBank)
+    }
+    
+    @objc func tryWord() {
+        guard let answer = providedAnswer.text?.uppercased() else {
+            return
+        }
+        if (answer == currentWord) {
+            wordLabel.text = currentWord
+            victory()
+        } else {
+            currentStage += 1
+            hangmanLabel.text = hangmanStages[currentStage]
+            if (currentStage == 6) {
+                failure()
+            }
         }
     }
     
@@ -324,6 +339,10 @@ class ViewController: UIViewController {
             return
         }
         
+        if currentStage >= 6 {
+            return
+        }
+        
         let selection = Character(buttonTitle)
         
         if currentWord.contains(selection) {
@@ -360,23 +379,25 @@ class ViewController: UIViewController {
     func checkProgress() {
         let currentProgress = wordLabel.text ?? "_"
         if currentProgress.contains("_") {
-            if (currentStage == 7) {
-                let ac = UIAlertController(title: "You Failed", message: "You coundn't guess the word", preferredStyle: .alert)
-                ac.addAction(UIAlertAction(title: "Try again", style: .default))
-                present(ac, animated: true)
-                index += 1
-                startGame(with: wordBank)
+            if (currentStage == 6) {
+                failure()
             }
             return
         }
         
-        let ac = UIAlertController(title: "YOU WON!!", message: "You guessed the word correctly", preferredStyle: .alert)
-        ac.addAction(UIAlertAction(title: "Try again", style: .default))
+        victory()
+    }
+    
+    func failure() {
+        let ac = UIAlertController(title: "You Failed", message: "The correct answer was: \(currentWord)", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "NOOOOO", style: .default))
         present(ac, animated: true)
-        
-        
-        index += 1
-        startGame(with: wordBank)
+    }
+    
+    func victory() {
+        let ac = UIAlertController(title: "YOU WON!!", message: "You guessed the word correctly", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "I did great!", style: .default))
+        present(ac, animated: true)
     }
 
 

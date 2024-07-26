@@ -92,7 +92,7 @@ class ViewController: UIViewController {
     override func loadView() {
         
         view = UIView() // parent of view, buttons, labels, etc.
-//        view.backgroundColor = .white
+        view.backgroundColor = .white
         
         hangmanLabel = UILabel()
         hangmanLabel.translatesAutoresizingMaskIntoConstraints = false

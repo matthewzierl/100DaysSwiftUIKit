@@ -19,7 +19,6 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     }
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print("There are \(people.count) in the array")
         return people.count
     }
     
@@ -45,6 +44,9 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     
     @objc func addNewPerson() {
         let picker = UIImagePickerController()
+        if (UIImagePickerController.isSourceTypeAvailable(.camera)) {
+            picker.sourceType = .camera
+        }
         picker.allowsEditing = true
         picker.delegate = self
         present(picker, animated: true)
@@ -75,16 +77,24 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let person = people[indexPath.item]
         
-        let ac = UIAlertController(title: "Rename Person", message: nil, preferredStyle: .alert)
-        ac.addTextField()
-        ac.addAction(UIAlertAction(title: "Okay", style: .default) { [weak self, weak ac] _ in
-            guard let newName = ac?.textFields?[0].text else {return}
-            person.name = newName
+        let ask = UIAlertController(title: "Would you like to rename or delete?", message: nil, preferredStyle: .alert)
+        ask.addAction(UIAlertAction(title: "Rename", style: .default) { [weak self] _ in
+            let ac = UIAlertController(title: "Rename Person", message: nil, preferredStyle: .alert)
+            ac.addTextField()
+            ac.addAction(UIAlertAction(title: "Okay", style: .default) { [weak self, weak ac] _ in
+                guard let newName = ac?.textFields?[0].text else {return}
+                person.name = newName
+                self?.collectionView.reloadData()
+            })
+            ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            self?.present(ac, animated: true)
+        })
+        ask.addAction(UIAlertAction(title: "Delete", style: .default) { [weak self] _ in
+            self?.people.remove(at: indexPath.item)
             self?.collectionView.reloadData()
         })
-        
-        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(ac, animated: true)
+        ask.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        present(ask, animated: true)
     }
 
 

@@ -11,6 +11,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var scoreLabel: SKLabelNode!
     
+    var ballNames = ["ballBlue", "ballCyan", "ballGreen", "ballGrey", "ballPurple", "ballRed", "ballYellow"]
+    
     var score = 0 {
         didSet {
             scoreLabel.text = "Score: \(score)"
@@ -85,13 +87,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 
                 box.physicsBody = SKPhysicsBody(rectangleOf: size)
                 box.physicsBody?.isDynamic = false
+                box.name = "obstacle"
                 addChild(box)
             } else { // normal behavior
-                let ball = SKSpriteNode(imageNamed: "ballRed")
+                
+                let randIndex = Int.random(in: 0..<7)
+                
+                let ball = SKSpriteNode(imageNamed: ballNames[randIndex])
                 ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2.0)
                 ball.physicsBody?.restitution = 0.9 // refers to bounciness 0-1 not-bouncy
                 ball.physicsBody?.contactTestBitMask = ball.physicsBody?.collisionBitMask ?? 0 // allows us to detect collisions
-                ball.position = location
+                let ballPosition = CGPoint(x: location.x, y: 1284)
+                ball.position = ballPosition
                 ball.name = "ball"
                 addChild(ball)
             }
@@ -144,10 +151,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         } else if object.name == "bad" {
             destroy(ball: ball)
             score -= 1
+        } else if object.name == "obstacle" {
+            object.removeFromParent()
         }
     }
     
     func destroy(ball: SKNode) {
+        if let fireParticles = SKEmitterNode(fileNamed: "FireParticles") {
+            fireParticles.position = ball.position
+            addChild(fireParticles)
+        }
+        
         ball.removeFromParent()
     }
     

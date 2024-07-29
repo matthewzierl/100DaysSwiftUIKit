@@ -16,6 +16,14 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         // Do any additional setup after loading the view.
         
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewPerson))
+        
+        let defaults = UserDefaults.standard
+        
+        if let savedPeople = defaults.object(forKey: "people") as? Data {
+            if let decodedPeople = try? NSKeyedUnarchiver.unarchivedArrayOfObjects(ofClasses: [Person.self], from: savedPeople) as? [Person] {
+                people = decodedPeople
+            }
+        }
     }
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -30,6 +38,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         let person = people[indexPath.item]
         
         cell.name.text = person.name
+        cell.name.textColor = .black
         
         let path = getDocumentsDirectory().appending(path: person.image)
         
@@ -64,6 +73,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         
         let person = Person(name: "Unknown", image: imageName)
         people.append(person)
+        save()
         collectionView.reloadData()
         
         dismiss(animated: true) // dismiss top most view controller
@@ -84,6 +94,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
             ac.addAction(UIAlertAction(title: "Okay", style: .default) { [weak self, weak ac] _ in
                 guard let newName = ac?.textFields?[0].text else {return}
                 person.name = newName
+                self?.save()
                 self?.collectionView.reloadData()
             })
             ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
@@ -91,10 +102,21 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         })
         ask.addAction(UIAlertAction(title: "Delete", style: .default) { [weak self] _ in
             self?.people.remove(at: indexPath.item)
+            self?.save()
             self?.collectionView.reloadData()
         })
         ask.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(ask, animated: true)
+    }
+    
+    func save() {
+        // save array of objects into a data format that can be saved in persistent storage
+        // we modified 'Person' to conform to NSObject and NSCoding so that it can work with NSKeyedArchiver
+        // root is 'people' array
+        if let savedData = try? NSKeyedArchiver.archivedData(withRootObject: people, requiringSecureCoding: Person.supportsSecureCoding) {
+            let defaults = UserDefaults.standard
+            defaults.set(savedData, forKey: "people")
+        }
     }
 
 

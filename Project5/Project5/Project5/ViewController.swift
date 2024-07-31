@@ -12,6 +12,8 @@ class ViewController: UITableViewController {
     var allWords = [String]()
     var usedWords = [String]()
     var usedWordsLowercased = [String]()
+    var currentWord: String = ""
+    var running = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,12 +36,47 @@ class ViewController: UITableViewController {
     }
     
     func startGame() {
-        title = allWords.randomElement()
-        usedWords.removeAll(keepingCapacity: true)
+        if running { // refresh game normally
+            currentWord = allWords.randomElement() ?? ""
+            title = currentWord
+            usedWords.removeAll(keepingCapacity: true)
+        } else { // load from user data
+            let defaults = UserDefaults.standard
+            if let savedWordData = defaults.object(forKey: "currentWord") as? Data {
+                let jsonDecoder = JSONDecoder()
+                
+                do {
+                    currentWord = try jsonDecoder.decode(String.self, from: savedWordData)
+                    title = currentWord
+                } catch {
+                    print("Unable to load previous word")
+                }
+            }
+            if let savedUsedWordData = defaults.object(forKey: "usedWords") as? Data {
+                let jsonDecoder = JSONDecoder()
+                
+                do {
+                    usedWords = try jsonDecoder.decode([String].self, from: savedUsedWordData)
+                } catch {
+                    print("Unable to load previous used words")
+                }
+            }
+            if let savedUsedWordDataLower = defaults.object(forKey: "usedWordsLowercased") as? Data {
+                let jsonDecoder = JSONDecoder()
+                
+                do {
+                    usedWordsLowercased = try jsonDecoder.decode([String].self, from: savedUsedWordDataLower)
+                } catch {
+                    print("Unable to load previous used words lowercased")
+                }
+            }
+        }
+        save()
         tableView.reloadData() // tableView member give nfrom UITableViewController, reloadData reloads all sections/rows
     }
     
     @objc func refreshGame() {
+        running = true
         startGame()
     }
     
@@ -81,6 +118,7 @@ class ViewController: UITableViewController {
                         if isReal(word: lowerAnswer) {
                             usedWords.insert(word, at: 0) // insert at head
                             usedWordsLowercased.insert(lowerAnswer, at: 0)
+                            save()
                             // after this point, could just call tableView.reloadData(), but it is ineffecient and we want an animation to
                             // show that user added a word
                             
@@ -142,6 +180,32 @@ class ViewController: UITableViewController {
         let range = NSRange(location: 0, length: word.utf16.count)
         let mispelledRanged = checker.rangeOfMisspelledWord(in: word, range: range, startingAt: 0, wrap: false, language: "en")
         return mispelledRanged.location == NSNotFound
+    }
+    
+    func save() {
+        
+        let jsonEncoder = JSONEncoder() // use JSONEncoder to encode people array
+        
+        if let savedData = try? jsonEncoder.encode(currentWord) {
+            let defaults = UserDefaults.standard
+            defaults.set(savedData, forKey: "currentWord") // save to user defaults with key 'people'
+        } else {
+            print("Failed to save currentWord")
+        }
+        
+        if let savedData = try? jsonEncoder.encode(usedWords) {
+            let defaults = UserDefaults.standard
+            defaults.set(savedData, forKey: "usedWords") // save to user defaults with key 'people'
+        } else {
+            print("Failed to save usedWords")
+        }
+        
+        if let savedData = try? jsonEncoder.encode(usedWordsLowercased) {
+            let defaults = UserDefaults.standard
+            defaults.set(savedData, forKey: "usedWordsLowercased") // save to user defaults with key 'people'
+        } else {
+            print("Failed to save usedWordsLowercased")
+        }
     }
     
 

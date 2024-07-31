@@ -11,6 +11,8 @@ class ViewController: UITableViewController {
     
     var pictures = [String]()
     
+    var picturesViewCount = [String: Int]()
+    
     /*
         ONLY used for sorting the pictures
      */
@@ -48,6 +50,17 @@ class ViewController: UITableViewController {
         
         
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(shareApp))
+        
+        let defaults = UserDefaults.standard
+        if let savedData = defaults.object(forKey: "viewCount") as? Data {
+            let jsonDecoder = JSONDecoder()
+            
+            do {
+                picturesViewCount = try jsonDecoder.decode([String: Int].self, from: savedData)
+            } catch {
+                print("Failed to load view count")
+            }
+        }
         
         
         DispatchQueue.global(qos: .userInitiated).async {
@@ -88,6 +101,7 @@ class ViewController: UITableViewController {
         
         var content = cell.defaultContentConfiguration() // modify content of cell
         content.text = pictures[indexPath.row] // change text to image name
+        content.secondaryText = "views: \(picturesViewCount[pictures[indexPath.row]] ?? 0)"
         
         content.textProperties.font = UIFont.systemFont(ofSize: 24) // changing size of font
         
@@ -106,6 +120,14 @@ class ViewController: UITableViewController {
             detailView.selectedImage = pictures[indexPath.row]
             detailView.totalImages = pictures.count
             detailView.currentImageIndex = indexPath.row
+            if var count = picturesViewCount[pictures[indexPath.row]] {
+                count += 1
+                picturesViewCount[pictures[indexPath.row]] = count
+            } else {
+                picturesViewCount[pictures[indexPath.row]] = 1
+            }
+            save()
+            tableView.reloadData()
             // 3: now push it onto the navigation controller
             navigationController?.pushViewController(detailView, animated: true)
         }
@@ -116,5 +138,16 @@ class ViewController: UITableViewController {
 //        vc.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         vc.popoverPresentationController?.sourceItem = navigationItem.rightBarButtonItem
         present(vc, animated: true)
+    }
+    
+    func save() {
+        let jsonEncoder = JSONEncoder() // use JSONEncoder to encode people array
+        
+        if let savedData = try? jsonEncoder.encode(picturesViewCount) {
+            let defaults = UserDefaults.standard
+            defaults.set(savedData, forKey: "viewCount") // save to user defaults with key 'people'
+        } else {
+            print("Failed to save data")
+        }
     }
 }

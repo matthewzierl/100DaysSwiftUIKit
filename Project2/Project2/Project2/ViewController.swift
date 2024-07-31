@@ -14,12 +14,27 @@ class ViewController: UIViewController {
     
     var countries = [String]()
     var score = 0
-    var highScore = 0
+    var highScore = 0 {
+        didSet {
+            save()
+        }
+    }
     var correctAnswer = 0
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let defaults = UserDefaults.standard
+        if let savedData = defaults.object(forKey: "highScore") as? Data {
+            let jsonDecoder = JSONDecoder()
+            
+            do {
+                highScore = try jsonDecoder.decode(Int.self, from: savedData)
+            } catch {
+                print("Failed to load highScore")
+            }
+        }
         
         self.view.backgroundColor = .white
         
@@ -91,6 +106,18 @@ class ViewController: UIViewController {
         let ac = UIAlertController(title: "Score:", message: "\(score)", preferredStyle: .alert)
         ac.addAction(UIAlertAction(title: "cancel", style: .default))
         present(ac, animated: true)
+    }
+    
+    func save() {
+        
+        let jsonEncoder = JSONEncoder() // use JSONEncoder to encode people array
+        
+        if let savedData = try? jsonEncoder.encode(highScore) {
+            let defaults = UserDefaults.standard
+            defaults.set(savedData, forKey: "highScore") // save to user defaults with key 'people'
+        } else {
+            print("Failed to save data")
+        }
     }
     
 }

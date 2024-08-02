@@ -11,9 +11,11 @@ class Interest: NSObject, Codable {
     
     var interest: String
     var image: String
+    var imageDescription: String
     
-    init(interest: String, image: String) {
+    init(interest: String, image: String, imageDescription: String) {
         self.interest = interest
         self.image = image
+        self.imageDescription = imageDescription
     }
 }

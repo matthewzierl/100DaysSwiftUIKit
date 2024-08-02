@@ -7,7 +7,18 @@
 
 import UIKit
 
-class ViewController: UICollectionViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class ViewController: UICollectionViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, InterestViewControllerDelegate {
+    
+    func didUpdateInterestDescription(_ viewController: InterestViewController, description: String) {
+        guard let indexPath = collectionView.indexPathsForSelectedItems?.first else {
+            return
+        }
+        
+        allInterests[indexPath.item].imageDescription = description
+        save() // Save the updated interests
+        collectionView.reloadItems(at: [indexPath]) // Reload the updated item
+    }
+    
     
     var allInterests: [Interest] = [Interest]()
     
@@ -18,6 +29,17 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         // Do any additional setup after loading the view.
         
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addInterest))
+        
+        let defaults = UserDefaults.standard
+        if let savedData = defaults.object(forKey: "allInterests") as? Data {
+            let jsonDecoder = JSONDecoder()
+            
+            do {
+                allInterests = try jsonDecoder.decode([Interest].self, from: savedData)
+            } catch {
+                print("Failed to load interests")
+            }
+        }
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
@@ -31,7 +53,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
             try? jpegData.write(to: imagePath)
         }
         
-        let interest = Interest(interest: "", image: imageName)
+        let interest = Interest(interest: "", image: imageName, imageDescription: "")
         
                 
         dismiss(animated: true) // dismiss the top view controller (last pushed)
@@ -44,6 +66,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         ac.addAction(UIAlertAction(title: "Submit", style: .default) { [weak self, weak ac] _ in
             interest.interest = ac?.textFields?[0].text ?? "Unnamed"
             self?.allInterests.append(interest)
+            self?.save()
             self?.collectionView.reloadData()
             
         })
@@ -89,11 +112,30 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     }
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let selectedInterest = allInterests[indexPath.item]
         
+        let imagePath = getDocumentsDirectory().appendingPathComponent(selectedInterest.image)
+        
+        if let interestView = storyboard?.instantiateViewController(withIdentifier: "InterestView") as? InterestViewController {
+            interestView.imagePath = imagePath
+            interestView.imageDescription = selectedInterest.imageDescription
+            interestView.interest = selectedInterest.interest
+            interestView.delegate = self
+            
+            navigationController?.pushViewController(interestView, animated: true)
+        }
     }
     
     func save() {
-        let defaults = UserDefaults.standard
+        
+        let jsonEncoder = JSONEncoder()
+        
+        if let savedData = try? jsonEncoder.encode(allInterests) {
+            let defaults = UserDefaults.standard
+            defaults.set(savedData, forKey: "allInterests")
+        } else {
+            print("Failed to save data")
+        }
     }
     
     @objc func addInterest() {

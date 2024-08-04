@@ -10,8 +10,13 @@ import CoreImage // what we are learning!
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     @IBOutlet var imageView: UIImageView!
-    @IBOutlet var intensity: UISlider!
     
+    @IBOutlet var intensity: UISlider!
+    @IBOutlet var radius: UISlider!
+    
+    @IBOutlet var saveButton: UIButton!
+    
+    @IBOutlet var changeFilterButton: UIButton!
     var currentImage: UIImage!
     
     var context: CIContext!
@@ -53,20 +58,33 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         guard let actionTitle = action.title else { return }
         
         currentFilter = CIFilter(name: actionTitle)
+        changeFilterButton.titleLabel?.text = actionTitle
         
         let beginImage = CIImage(image: currentImage)
                 
         currentFilter.setValue(beginImage, forKey: kCIInputImageKey)
         applyProcessing()
+        applyRadiusProcessing()
     }
     
     @IBAction func save(_ sender: Any) {
-        guard let image = imageView.image else { return }
+        guard let image = imageView.image else {
+            
+            let ac = UIAlertController(title: "Error", message: "No image provided...", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Acknowledge", style: .default))
+            present(ac, animated: true)
+            
+            return
+        }
         UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
     }
     
     @IBAction func intensityChanged(_ sender: Any) {
         applyProcessing()
+    }
+    
+    @IBAction func radiusChanged(_ sender: Any) {
+        applyRadiusProcessing()
     }
     
     @objc func importPicture() {
@@ -87,6 +105,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         let beginImage = CIImage(image: currentImage) // sort of like CoreImage equivalent of UIImage
         currentFilter.setValue(beginImage, forKey: kCIInputImageKey) // set filter to CoreImage transformations of image
         applyProcessing()
+        applyRadiusProcessing()
+    }
+    
+    func applyRadiusProcessing() {
+        let inputKeys = currentFilter.inputKeys
+        if inputKeys.contains(kCIInputRadiusKey) {
+            currentFilter.setValue(radius.value * 200, forKey: kCIInputRadiusKey)
+        }
     }
     
     func applyProcessing() {
@@ -95,10 +121,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         
         if inputKeys.contains(kCIInputIntensityKey) { // only filter if it has the intensity key
             currentFilter.setValue(intensity.value, forKey: kCIInputIntensityKey)
-        }
-        
-        if inputKeys.contains(kCIInputRadiusKey) {
-            currentFilter.setValue(intensity.value * 200, forKey: kCIInputRadiusKey)
         }
         
         if inputKeys.contains(kCIInputScaleKey) {
@@ -119,6 +141,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
     
+    /*
+        called when user presses save button, and potentially saves to camera roll
+        give response to user whether save was successful or not
+     */
     @objc func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
         if let error = error {
             let ac = UIAlertController(title: "Save Error", message: error.localizedDescription, preferredStyle: .alert)

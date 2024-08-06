@@ -17,6 +17,7 @@
 		B5DFD0EF2C6075A90068CEC8 /* Classic_project14-files_Content_whack.caf in Resources */ = {isa = PBXBuildFile; fileRef = B5DFD0ED2C6075A90068CEC8 /* Classic_project14-files_Content_whack.caf */; };
 		B5DFD0F02C6075A90068CEC8 /* Classic_project14-files_Content_whackBad.caf in Resources */ = {isa = PBXBuildFile; fileRef = B5DFD0EE2C6075A90068CEC8 /* Classic_project14-files_Content_whackBad.caf */; };
 		B5DFD0F22C6078F70068CEC8 /* WhackSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DFD0F12C6078F70068CEC8 /* WhackSlot.swift */; };
+		B5DFD0F62C627E360068CEC8 /* GameOver.m4a in Resources */ = {isa = PBXBuildFile; fileRef = B5DFD0F52C627E360068CEC8 /* GameOver.m4a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 		B5DFD0ED2C6075A90068CEC8 /* Classic_project14-files_Content_whack.caf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Classic_project14-files_Content_whack.caf"; path = "../../project-files/Classic_project14-files_Content_whack.caf"; sourceTree = "<group>"; };
 		B5DFD0EE2C6075A90068CEC8 /* Classic_project14-files_Content_whackBad.caf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Classic_project14-files_Content_whackBad.caf"; path = "../../project-files/Classic_project14-files_Content_whackBad.caf"; sourceTree = "<group>"; };
 		B5DFD0F12C6078F70068CEC8 /* WhackSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhackSlot.swift; sourceTree = "<group>"; };
+		B5DFD0F52C627E360068CEC8 /* GameOver.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = GameOver.m4a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +73,7 @@
 				B5DFD0F12C6078F70068CEC8 /* WhackSlot.swift */,
 				B5DFD0DE2C6074290068CEC8 /* GameViewController.swift */,
 				B5DFD0E02C6074290068CEC8 /* Main.storyboard */,
+				B5DFD0F52C627E360068CEC8 /* GameOver.m4a */,
 				B5DFD0E32C60742A0068CEC8 /* Assets.xcassets */,
 				B5DFD0E52C60742A0068CEC8 /* LaunchScreen.storyboard */,
 			);
@@ -139,6 +142,7 @@
 				B5DFD0E22C6074290068CEC8 /* Base in Resources */,
 				B5DFD0EF2C6075A90068CEC8 /* Classic_project14-files_Content_whack.caf in Resources */,
 				B5DFD0E42C60742A0068CEC8 /* Assets.xcassets in Resources */,
+				B5DFD0F62C627E360068CEC8 /* GameOver.m4a in Resources */,
 				B5DFD0E72C60742A0068CEC8 /* Base in Resources */,
 				B5DFD0F02C6075A90068CEC8 /* Classic_project14-files_Content_whackBad.caf in Resources */,
 			);

@@ -100,7 +100,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         
         dismiss(animated: true)
         
+        imageView.alpha = 0
         currentImage = image
+        
+        UIView.animate(withDuration: 2, delay: 0, options: []) {
+            self.imageView.alpha = 1
+        }
+
+        
         
         let beginImage = CIImage(image: currentImage) // sort of like CoreImage equivalent of UIImage
         currentFilter.setValue(beginImage, forKey: kCIInputImageKey) // set filter to CoreImage transformations of image

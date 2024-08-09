@@ -16,6 +16,8 @@ class ViewController: UIViewController, MKMapViewDelegate {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: SFSymbols.map), style: .plain, target: self, action: #selector(changeMapType))
+        
         let tokyo = Capital(title: "Tokyo", coordinate: CLLocationCoordinate2D(latitude: 35.652832, longitude: 139.839478), extraInfo: "My home")
         
         let london = Capital(title: "London", coordinate: CLLocationCoordinate2D(latitude: 51.507222, longitude: -0.1275), extraInfo: "Home to 2012 Summer Olympics")
@@ -29,6 +31,23 @@ class ViewController: UIViewController, MKMapViewDelegate {
         let washington = Capital(title: "Washington D.C", coordinate: CLLocationCoordinate2D(latitude: 38.895111, longitude: -77.036667), extraInfo: "Named after George himself")
         
         mapView.addAnnotations([tokyo, london, oslo, paris, rome, washington])
+    }
+    
+    @objc func changeMapType() {
+        let ac = UIAlertController(title: "Map Type", message: nil, preferredStyle: .actionSheet)
+        ac.addAction(UIAlertAction(title: "Standard", style: .default, handler: { [weak self] _ in
+            let config = MKStandardMapConfiguration()
+            self?.mapView.preferredConfiguration = config
+        }))
+        ac.addAction(UIAlertAction(title: "Hybrid", style: .default, handler: { [weak self] _ in
+            let config = MKHybridMapConfiguration()
+            self?.mapView.preferredConfiguration = config
+        }))
+        ac.addAction(UIAlertAction(title: "Satellite", style: .default, handler: { [weak self] _ in
+            let config = MKImageryMapConfiguration()
+            self?.mapView.preferredConfiguration = config
+        }))
+        present(ac, animated: true)
     }
     
     func mapView(_ mapView: MKMapView, viewFor annotation: any MKAnnotation) -> MKAnnotationView? {

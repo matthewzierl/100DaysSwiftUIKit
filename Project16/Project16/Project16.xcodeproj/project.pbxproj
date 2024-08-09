@@ -14,6 +14,7 @@
 		B5DA61DE2C64EA4200836BF3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B5DA61DD2C64EA4200836BF3 /* Assets.xcassets */; };
 		B5DA61E12C64EA4200836BF3 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = B5DA61E02C64EA4200836BF3 /* Base */; };
 		B5DA61E92C64ED5100836BF3 /* Capital.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DA61E82C64ED5100836BF3 /* Capital.swift */; };
+		B5DA61EB2C65AAB500836BF3 /* SFSymbols.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DA61EA2C65AAB500836BF3 /* SFSymbols.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		B5DA61E02C64EA4200836BF3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B5DA61E22C64EA4200836BF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B5DA61E82C64ED5100836BF3 /* Capital.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capital.swift; sourceTree = "<group>"; };
+		B5DA61EA2C65AAB500836BF3 /* SFSymbols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSymbols.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +63,7 @@
 				B5DA61D42C64EA4100836BF3 /* AppDelegate.swift */,
 				B5DA61D62C64EA4100836BF3 /* SceneDelegate.swift */,
 				B5DA61D82C64EA4100836BF3 /* ViewController.swift */,
+				B5DA61EA2C65AAB500836BF3 /* SFSymbols.swift */,
 				B5DA61E82C64ED5100836BF3 /* Capital.swift */,
 				B5DA61DA2C64EA4100836BF3 /* Main.storyboard */,
 				B5DA61DD2C64EA4200836BF3 /* Assets.xcassets */,
@@ -143,6 +146,7 @@
 			files = (
 				B5DA61D92C64EA4100836BF3 /* ViewController.swift in Sources */,
 				B5DA61D52C64EA4100836BF3 /* AppDelegate.swift in Sources */,
+				B5DA61EB2C65AAB500836BF3 /* SFSymbols.swift in Sources */,
 				B5DA61E92C64ED5100836BF3 /* Capital.swift in Sources */,
 				B5DA61D72C64EA4100836BF3 /* SceneDelegate.swift in Sources */,
 			);

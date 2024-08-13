@@ -117,7 +117,7 @@ class ViewController: UIViewController, UNUserNotificationCenterDelegate {
             case "remindLater":
                 ac = UIAlertController(title: "Scheduling notifcation", message: "10 sec from now so lock your screen", preferredStyle: .alert)
                 ac?.addAction(UIAlertAction(title: "got it", style: .default))
-                scheduleNotificatonInterval(title: "A custom notifcation", body: "You must have pressed 'remind later' in previous notificaton", identifier: "alarm")
+                scheduleNotificatonInterval(title: "A custom notifcation", body: "You must have pressed 'remind later' in previous notificaton", identifier: "alaUrm")
                 
             default:
                 ac = UIAlertController(title: "huh", message: "what is going on...", preferredStyle: .alert)

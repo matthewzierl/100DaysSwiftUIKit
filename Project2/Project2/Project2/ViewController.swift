@@ -6,8 +6,9 @@
 //
 
 import UIKit
+//import UserNotifications
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UNUserNotificationCenterDelegate {
     @IBOutlet var button1: UIButton!
     @IBOutlet var button2: UIButton!
     @IBOutlet var button3: UIButton!
@@ -25,6 +26,32 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let center = UNUserNotificationCenter.current()
+        center.removeAllPendingNotificationRequests()
+
+        center.getNotificationSettings { [weak self] settings in
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                print("Notification permission not determined.")
+                break
+            case .denied:
+                print("Notification permission denied.")
+                break
+            case .authorized:
+                print("Notification permission granted.")
+                self?.giveReminders()
+            case .provisional:
+                print("Provisional notification permission granted.")
+                break
+            case .ephemeral:
+                print("Ephemeral notification permission granted.") // iOS 14+ for temporary permissions
+                break
+            @unknown default:
+                print("Unknown notification permission status.")
+                fatalError()
+            }
+        }
+        
         let defaults = UserDefaults.standard
         if let savedData = defaults.object(forKey: "highScore") as? Data {
             let jsonDecoder = JSONDecoder()
@@ -37,6 +64,8 @@ class ViewController: UIViewController {
         }
         
         self.view.backgroundColor = .white
+        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Register", style: .plain, target: self, action: #selector(registerLocal))
         
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(checkScore))
         if let navigationBar = self.navigationController?.navigationBar {
@@ -128,6 +157,63 @@ class ViewController: UIViewController {
         } else {
             print("Failed to save data")
         }
+    }
+    
+    @objc func registerLocal() {
+        let center = UNUserNotificationCenter.current()
+        
+        center.requestAuthorization(options: [.alert, .badge, .sound]) { [weak self] granted, error in
+            if (granted) {
+                print("YEAH")
+                self?.giveReminders()
+            } else {
+                print("FUK")
+            }
+        }
+    }
+    
+    func giveReminders() {
+        
+        registerCategories()
+        
+        let center = UNUserNotificationCenter.current()
+        center.removeAllPendingNotificationRequests() // remove all requests that haven't been triggered yet
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Play Flag Game"
+        content.body = "You need to play it there is not other time or place to be doing anything else you need to play this game!"
+        content.categoryIdentifier = "alarm"
+        content.userInfo = ["customData": "fuck you"]
+        content.sound = .default
+        
+        var weekNotificationDates = [DateComponents]()
+        
+        for day in 1...7 {
+            var dateComponents = DateComponents()
+            dateComponents.weekday = day
+            dateComponents.hour = 14
+            dateComponents.minute = 30
+            weekNotificationDates.append(dateComponents)
+        }
+        
+        for date in weekNotificationDates {
+            let trigger = UNCalendarNotificationTrigger(dateMatching: date, repeats: false)
+            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+            center.add(request)
+        }
+        
+    }
+    
+    func registerCategories() {
+        let center = UNUserNotificationCenter.current()
+        center.delegate = self
+        
+        
+        let show = UNNotificationAction(identifier: "show", title: "Play Game!", options: .foreground)
+        
+        let category = UNNotificationCategory(identifier: "alarm", actions: [show], intentIdentifiers: [], options: [])
+        
+        center.setNotificationCategories([category])
     }
     
 }

@@ -17,6 +17,8 @@ class GameScene: SKScene {
     let bottomEdge = -22
     let rightEdge = 2778 + 22
     
+    var batchesLaunched = 0
+    
     var scoreLabel: SKLabelNode!
     
     var score = 0 {
@@ -80,6 +82,17 @@ class GameScene: SKScene {
     }
     
     @objc func launchFireworks() {
+        
+        if batchesLaunched >= 6 {
+            gameTimer?.invalidate()
+            let gameOverLabel = SKLabelNode(fontNamed: "Chalkduster")
+            gameOverLabel.position = CGPoint(x: 2778/2, y: 1284/2)
+            gameOverLabel.setScale(3)
+            gameOverLabel.text = "GAME OVER"
+            addChild(gameOverLabel)
+            return
+        }
+        
         let movementAmount: CGFloat = 4500
         
         switch Int.random(in: 0...3) {
@@ -114,6 +127,8 @@ class GameScene: SKScene {
         default:
             break;
         }
+        
+        batchesLaunched += 1
     }
     
     func checkTouches(_ touches: Set<UITouch>) {
@@ -166,6 +181,14 @@ class GameScene: SKScene {
         if let emitter = SKEmitterNode(fileNamed: "explode") {
             emitter.position = firework.position
             addChild(emitter)
+            
+            let wait = SKAction.wait(forDuration: 1.0)
+            let remove = SKAction.removeFromParent()
+            
+            let sequence = SKAction.sequence([wait, remove])
+            
+            emitter.run(sequence)
+            
         }
         firework.removeFromParent()
     }

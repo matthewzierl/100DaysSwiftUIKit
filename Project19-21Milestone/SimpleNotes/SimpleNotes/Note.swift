@@ -7,9 +7,10 @@
 
 import Foundation
 
-struct Note {
-    var title: String
-    var body: String
-    var dateCreated: Date
-    var dateModified: Date
+class Note {
+    var title: String = ""
+    var body: String = ""
+    var dateCreated: Date = Date.now
+    var dateModified: Date = Date.now
+    var index: Int = -1
 }

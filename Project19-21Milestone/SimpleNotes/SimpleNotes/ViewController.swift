@@ -7,12 +7,11 @@
 
 import UIKit
 
-class ViewController: UITableViewController {
-    
+class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     
     var allNotes = [Note]()
     
-    var notesSection = [String: Int]()
+    var notesSectionCount = [String: Int]()
     var notesSectionDates = [String]()
     
     
@@ -29,9 +28,10 @@ class ViewController: UITableViewController {
         // create tool bar
         
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let numNotes = UIBarButtonItem(title: "\(allNotes.count) Notes", style: .plain, target: nil, action: nil)
         let compose = UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(composeNote))
         
-        toolbarItems = [flexibleSpace, compose]
+        toolbarItems = [flexibleSpace, numNotes, flexibleSpace, compose]
         
         navigationController?.setToolbarHidden(false, animated: true)
         
@@ -39,23 +39,37 @@ class ViewController: UITableViewController {
         
         // END
         
-        // sort loaded notes and update sections
-        allNotes.sort { note1, note2 in
-            note1.dateModified > note2.dateModified
-        }
-        splitNotesIntoSections()
+        
+        sortNotes() // Sort notes
+        splitNotesIntoSections() // Split into grouped sections
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return notesSection[notesSectionDates[section]] ?? 0
+        print("in number of rows in section, outputing: \(notesSectionCount[notesSectionDates[section]] ?? 0)")
+        return notesSectionCount[notesSectionDates[section]] ?? 0
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
+        
+        let sectionKey = notesSectionDates[indexPath.section]
+        
+        
+        let sectionNotes = allNotes.filter { note in
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.month, .year], from: note.dateModified)
+            if let month = components.month, let year = components.year {
+                let key = "\(getNameMonth(month: month)) \(year)"
+                return key == sectionKey
+            }
+            return false
+        }
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "NoteCell", for: indexPath)
         
         var configuration = cell.defaultContentConfiguration()
-        configuration.text = allNotes[indexPath.count].title
+
+        configuration.text = sectionNotes[indexPath.row].title
         
         cell.contentConfiguration = configuration
         
@@ -70,7 +84,7 @@ class ViewController: UITableViewController {
         Provide number of sections
      */
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return notesSection.count
+        return notesSectionCount.count
     }
     
     /*
@@ -92,23 +106,38 @@ class ViewController: UITableViewController {
 //        <#code#>
 //    }
     
+    func sortNotes() {
+        allNotes.sort { note1, note2 in
+            note1.dateModified > note2.dateModified
+        }
+        for index in allNotes.indices {
+            allNotes[index].index = index
+        }
+    }
+    
     func splitNotesIntoSections() {
     
         let calendar = Calendar.current
         
+        var newNoteSectionsCount = [String: Int]()
+        var newSectionDates = [String]()
+        
         for note in allNotes {
             let components = calendar.dateComponents([.month, .year], from: note.dateModified) // for now, sorting by modified
             if let month = components.month, let year = components.year {
-                let key = "\(month) \(year)"
-                if let numNotesInSection = notesSection[key] {
-                    notesSection[key] = numNotesInSection + 1
+                let key = "\(getNameMonth(month: month)) \(year)"
+                if let numNotesInSection = newNoteSectionsCount[key] {
+                    newNoteSectionsCount[key] = numNotesInSection + 1
                 } else {
-                    notesSection[key] = 1
-                    notesSectionDates.append(key) // new key, new entry
+                    newNoteSectionsCount[key] = 1
+                    newSectionDates.append(key) // new key, new entry
                 }
                 
             }
         }
+        
+        notesSectionCount = newNoteSectionsCount
+        notesSectionDates = newSectionDates
     }
     
     @objc func presentSortOptions(_ barButton: UIBarButtonItem) {
@@ -117,13 +146,59 @@ class ViewController: UITableViewController {
     
     @objc func composeNote(_ barButton: UIBarButtonItem) {
         let newNoteView = ComposeNoteController()
+        let newNote = Note() // index will be assigned later
+        allNotes.append(newNote)
+        
+//        DispatchQueue.main.async { [weak self] in
+//            self?.sortNotes()
+//            self?.splitNotesIntoSections()
+//        }
+        sortNotes()
+        splitNotesIntoSections()
+        
+        newNoteView.note = newNote
+        newNoteView.allNotes = allNotes
+        newNoteView.delegate = self
         navigationController?.pushViewController(newNoteView, animated: true)
     }
     
-    
-    
-    func save() {
-        
+    func removedFromNavigationStack(allNotes: [Note]) {
+        self.allNotes = allNotes
+        print("View removed from navigation stack, sorting notes (\(allNotes.count)) now")
+        sortNotes()
+        splitNotesIntoSections()
+        tableView.reloadData()
+    }
+
+    func getNameMonth(month: Int) -> String {
+        switch month {
+        case 1:
+            return "January"
+        case 2:
+            return "February"
+        case 3:
+            return "March"
+        case 4:
+            return "April"
+        case 5:
+            return "May"
+        case 6:
+            return "June"
+        case 7:
+            return "July"
+        case 8:
+            return "August"
+        case 9:
+            return "September"
+        case 10:
+            return "October"
+        case 11:
+            return "November"
+        case 12:
+            return "December"
+        default:
+            return "Uknown"
+        }
     }
 
 

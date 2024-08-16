@@ -45,7 +45,6 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         
         // only want to refresh when needing to present it
         sortNotes()
-        splitNotesIntoSections()
         tableView.reloadData()
     }
     
@@ -57,18 +56,7 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         
-        let sectionKey = notesSectionDates[indexPath.section]
-        
-        
-        let sectionNotes = allNotes.filter { note in
-            let calendar = Calendar.current
-            let components = calendar.dateComponents([.month, .year], from: note.dateModified)
-            if let month = components.month, let year = components.year {
-                let key = "\(getNameMonth(month: month)) \(year)"
-                return key == sectionKey
-            }
-            return false
-        }
+        let sectionNotes = getSectionNotes(indexPath: indexPath)
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "NoteCell", for: indexPath)
         
@@ -82,6 +70,13 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        let sectionNotes = getSectionNotes(indexPath: indexPath)
+        
+        let newNoteView = ComposeNoteController(note: sectionNotes[indexPath.row], allNotes: allNotes)
+        newNoteView.delegate = self
+        
+        navigationController?.pushViewController(newNoteView, animated: true)
     }
     
     /*
@@ -106,14 +101,43 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         return view
     }
     
-//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-//        <#code#>
-//    }
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        
+        // need to find index of note in allNotes array
+        
+        let note = getSectionNotes(indexPath: indexPath)[indexPath.row]
+        
+        let calendar = Calendar.current
+        var key: String?
+        let components = calendar.dateComponents([.month, .year], from: note.dateModified)
+        if let month = components.month, let year = components.year {
+            key = "\(getNameMonth(month: month)) \(year)"
+        }
+        guard let key = key else { return }
+        
+        var index = 0
+        
+        for dateSection in notesSectionDates {
+            if dateSection == key { break }
+            index += notesSectionCount[dateSection] ?? 0
+        }
+        
+        print("index found: \(index)")
+        
+        if editingStyle == .delete {
+            allNotes.remove(at: index)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+        } else if editingStyle == .insert {
+            print("insert")
+        }
+    }
+    
     
     func sortNotes() {
         allNotes.sort { note1, note2 in
             note1.dateModified > note2.dateModified
         }
+        splitNotesIntoSections()
     }
     
     func splitNotesIntoSections() {
@@ -187,6 +211,23 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         default:
             return "Uknown"
         }
+    }
+    
+    func getSectionNotes(indexPath: IndexPath) -> [Note] {
+        
+        let sectionKey = notesSectionDates[indexPath.section]
+        
+        let sectionNotes = allNotes.filter { note in
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.month, .year], from: note.dateModified)
+            if let month = components.month, let year = components.year {
+                let key = "\(getNameMonth(month: month)) \(year)"
+                return key == sectionKey
+            }
+            return false
+        }
+        
+        return sectionNotes
     }
 
 

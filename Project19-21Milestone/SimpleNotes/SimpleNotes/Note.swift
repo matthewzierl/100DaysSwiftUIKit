@@ -12,5 +12,4 @@ class Note {
     var body: String = ""
     var dateCreated: Date = Date.now
     var dateModified: Date = Date.now
-    var index: Int = -1
 }

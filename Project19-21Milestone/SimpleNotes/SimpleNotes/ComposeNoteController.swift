@@ -10,28 +10,47 @@ import UIKit
 
 class ComposeNoteController: UIViewController, UITextViewDelegate {
     
-    var textView: UITextView! // constructor called in viewDidLoad
+    var textView: UITextView!
     
-    var note: Note! // always passed 
+    var note: Note?
     
-    var allNotes: [Note]!
+    var allNotes: [Note]
     
-    weak var delegate: ComposeNoteControllerDelegate?
+    var delegate: ComposeNoteControllerDelegate?
+    
+    init(note: Note? = nil, allNotes: [Note]) {
+        self.note = note
+        self.allNotes = allNotes
+        super.init(nibName: nil, bundle: nil) // have no clue what this does
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        textView = UITextView()
         
-        var noteOptions = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(presentNoteOptions))
-        var shareNote = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), style: .plain, target: self, action: #selector(shareNote))
+        if let note = note {
+            textView.text = note.body
+        } else {
+            note = Note()
+            allNotes.append(note!) // new note must be added
+        }
+        
+        let noteOptions = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(presentNoteOptions))
+        let shareNote = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), style: .plain, target: self, action: #selector(shareNote))
         
         navigationItem.rightBarButtonItems = [noteOptions, shareNote]
         
-        textView = UITextView()
         textView.delegate = self
         
         view = textView
+        
+        delegate?.composeNoteControllerDidLoad(allNotes: allNotes)
         
         let camera = UIBarButtonItem(image: UIImage(systemName: "camera"), style: .plain, target: self, action: #selector(presentImageOptions))
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
@@ -41,10 +60,7 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
         navigationController?.setToolbarHidden(false, animated: true)
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        delegate?.removedFromNavigationStack(allNotes: allNotes)
-    }
+    
     
     func textViewDidChange(_ textView: UITextView) {
         saveNote()
@@ -63,16 +79,12 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
     }
     
     @objc func composeNote(_ barButton: UIBarButtonItem) {
-        let newNoteView = ComposeNoteController()
-        let newNote = Note()
         
-        newNoteView.note = newNote
-        newNoteView.allNotes = allNotes
-        newNoteView.delegate = delegate // set to own delegate i.e view controller
         
-        allNotes.append(newNote)
-        print("in save")
-        print("appending new note, count is now: \(allNotes.count)")
+        let newNoteView = ComposeNoteController(note: nil, allNotes: allNotes)
+        
+        newNoteView.delegate = delegate
+        
         
         navigationController?.pushViewController(newNoteView, animated: true)
     }
@@ -85,11 +97,11 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
 //            allNotes[note!.index] = note!
 //            defaults.setValue(allNotes, forKey: "allNotes")
 //        }
+        guard let note = note else { return }
+        
         note.title = getTitle()
         note.body = textView.text
         note.dateModified = Date.now
-        print("Saving note with index: \(note.index)")
-        allNotes[note!.index] = note!
     }
     
     func getTitle() -> String {
@@ -106,6 +118,6 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
     
 }
 
-protocol ComposeNoteControllerDelegate: AnyObject {
-    func removedFromNavigationStack(allNotes: [Note])
+protocol ComposeNoteControllerDelegate {
+    func composeNoteControllerDidLoad(allNotes: [Note])
 }

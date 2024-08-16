@@ -38,10 +38,15 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         // TODO: Load from user default config
         
         // END
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         
-        
-        sortNotes() // Sort notes
-        splitNotesIntoSections() // Split into grouped sections
+        // only want to refresh when needing to present it
+        sortNotes()
+        splitNotesIntoSections()
+        tableView.reloadData()
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -76,9 +81,8 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         return cell
     }
     
-//    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        <#code#>
-//    }
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    }
     
     /*
         Provide number of sections
@@ -109,9 +113,6 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     func sortNotes() {
         allNotes.sort { note1, note2 in
             note1.dateModified > note2.dateModified
-        }
-        for index in allNotes.indices {
-            allNotes[index].index = index
         }
     }
     
@@ -145,29 +146,16 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     }
     
     @objc func composeNote(_ barButton: UIBarButtonItem) {
-        let newNoteView = ComposeNoteController()
-        let newNote = Note() // index will be assigned later
-        allNotes.append(newNote)
         
-//        DispatchQueue.main.async { [weak self] in
-//            self?.sortNotes()
-//            self?.splitNotesIntoSections()
-//        }
-        sortNotes()
-        splitNotesIntoSections()
-        
-        newNoteView.note = newNote
-        newNoteView.allNotes = allNotes
+        let newNoteView = ComposeNoteController(note: nil, allNotes: allNotes)
         newNoteView.delegate = self
+        
         navigationController?.pushViewController(newNoteView, animated: true)
     }
     
-    func removedFromNavigationStack(allNotes: [Note]) {
+    func composeNoteControllerDidLoad(allNotes: [Note]) {
+        print("main received compose load signal with allNotes count at \(allNotes.count)")
         self.allNotes = allNotes
-        print("View removed from navigation stack, sorting notes (\(allNotes.count)) now")
-        sortNotes()
-        splitNotesIntoSections()
-        tableView.reloadData()
     }
 
     func getNameMonth(month: Int) -> String {

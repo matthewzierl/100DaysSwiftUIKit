@@ -14,11 +14,11 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
     
     var note: Note?
     
-    var allNotes: [Note]
+    var allNotes: [[Note]]
     
     var delegate: ComposeNoteControllerDelegate?
     
-    init(note: Note? = nil, allNotes: [Note]) {
+    init(note: Note? = nil, allNotes: [[Note]]) {
         self.note = note
         self.allNotes = allNotes
         super.init(nibName: nil, bundle: nil) // have no clue what this does
@@ -38,7 +38,9 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
             textView.text = note.body
         } else {
             note = Note()
-            allNotes.append(note!) // new note must be added
+            note!.dateModified = note!.dateModified
+            let arr = [note!]
+            allNotes.append(arr) // new note must be added, will sort later
         }
         
         let noteOptions = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(presentNoteOptions))
@@ -119,5 +121,5 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
 }
 
 protocol ComposeNoteControllerDelegate {
-    func composeNoteControllerDidLoad(allNotes: [Note])
+    func composeNoteControllerDidLoad(allNotes: [[Note]])
 }

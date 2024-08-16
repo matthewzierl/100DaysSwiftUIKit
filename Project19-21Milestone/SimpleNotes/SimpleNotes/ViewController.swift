@@ -9,10 +9,7 @@ import UIKit
 
 class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     
-    var allNotes = [Note]()
-    
-    var notesSectionCount = [String: Int]()
-    var notesSectionDates = [String]()
+    var allNotes = [[Note]]()
     
     
 
@@ -49,20 +46,19 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print("in number of rows in section, outputing: \(notesSectionCount[notesSectionDates[section]] ?? 0)")
-        return notesSectionCount[notesSectionDates[section]] ?? 0
+        return allNotes[section].count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         
-        let sectionNotes = getSectionNotes(indexPath: indexPath)
+        let note = allNotes[indexPath.section][indexPath.row]
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "NoteCell", for: indexPath)
         
         var configuration = cell.defaultContentConfiguration()
 
-        configuration.text = sectionNotes[indexPath.row].title
+        configuration.text = note.title
         
         cell.contentConfiguration = configuration
         
@@ -71,9 +67,9 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        let sectionNotes = getSectionNotes(indexPath: indexPath)
+        let note = allNotes[indexPath.section][indexPath.row]
         
-        let newNoteView = ComposeNoteController(note: sectionNotes[indexPath.row], allNotes: allNotes)
+        let newNoteView = ComposeNoteController(note: note, allNotes: allNotes)
         newNoteView.delegate = self
         
         navigationController?.pushViewController(newNoteView, animated: true)
@@ -83,7 +79,7 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         Provide number of sections
      */
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return notesSectionCount.count
+        return allNotes.count
     }
     
     /*
@@ -94,7 +90,7 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         
         let label = UILabel(frame: CGRect(x: 15, y: 0, width: tableView.frame.width, height: 40))
         label.font = UIFont(name: "Kailasa-Bold", size: 20)
-        label.text = notesSectionDates[section]
+        label.text = allNotes[section][0].key
         
         view.addSubview(label)
         
@@ -105,27 +101,8 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         
         // need to find index of note in allNotes array
         
-        let note = getSectionNotes(indexPath: indexPath)[indexPath.row]
-        
-        let calendar = Calendar.current
-        var key: String?
-        let components = calendar.dateComponents([.month, .year], from: note.dateModified)
-        if let month = components.month, let year = components.year {
-            key = "\(getNameMonth(month: month)) \(year)"
-        }
-        guard let key = key else { return }
-        
-        var index = 0
-        
-        for dateSection in notesSectionDates {
-            if dateSection == key { break }
-            index += notesSectionCount[dateSection] ?? 0
-        }
-        
-        print("index found: \(index)")
-        
         if editingStyle == .delete {
-            allNotes.remove(at: index)
+            allNotes[indexPath.section].remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
         } else if editingStyle == .insert {
             print("insert")
@@ -134,36 +111,39 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     
     
     func sortNotes() {
-        allNotes.sort { note1, note2 in
+        
+        var flatArray = allNotes.flatMap { $0 }
+        
+        flatArray.sort { note1, note2 in
             note1.dateModified > note2.dateModified
         }
-        splitNotesIntoSections()
-    }
-    
-    func splitNotesIntoSections() {
-    
-        let calendar = Calendar.current
         
-        var newNoteSectionsCount = [String: Int]()
-        var newSectionDates = [String]()
+        var newAllNotes = [[Note]]()
+        var currentArray = [Note]()
         
-        for note in allNotes {
-            let components = calendar.dateComponents([.month, .year], from: note.dateModified) // for now, sorting by modified
-            if let month = components.month, let year = components.year {
-                let key = "\(getNameMonth(month: month)) \(year)"
-                if let numNotesInSection = newNoteSectionsCount[key] {
-                    newNoteSectionsCount[key] = numNotesInSection + 1
+        for note in flatArray {
+            
+            if let firstNote = currentArray.first {
+                if note.key == firstNote.key {
+                    currentArray.append(note)
                 } else {
-                    newNoteSectionsCount[key] = 1
-                    newSectionDates.append(key) // new key, new entry
+                    newAllNotes.append(currentArray)
+                    currentArray = [Note]()
+                    currentArray.append(note)
                 }
-                
+            } else {
+                currentArray.append(note)
             }
         }
         
-        notesSectionCount = newNoteSectionsCount
-        notesSectionDates = newSectionDates
+        if !currentArray.isEmpty {
+            newAllNotes.append(currentArray)
+        }
+        
+        allNotes = newAllNotes
+        
     }
+    
     
     @objc func presentSortOptions(_ barButton: UIBarButtonItem) {
         
@@ -177,57 +157,8 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         navigationController?.pushViewController(newNoteView, animated: true)
     }
     
-    func composeNoteControllerDidLoad(allNotes: [Note]) {
-        print("main received compose load signal with allNotes count at \(allNotes.count)")
+    func composeNoteControllerDidLoad(allNotes: [[Note]]) {
         self.allNotes = allNotes
-    }
-
-    func getNameMonth(month: Int) -> String {
-        switch month {
-        case 1:
-            return "January"
-        case 2:
-            return "February"
-        case 3:
-            return "March"
-        case 4:
-            return "April"
-        case 5:
-            return "May"
-        case 6:
-            return "June"
-        case 7:
-            return "July"
-        case 8:
-            return "August"
-        case 9:
-            return "September"
-        case 10:
-            return "October"
-        case 11:
-            return "November"
-        case 12:
-            return "December"
-        default:
-            return "Uknown"
-        }
-    }
-    
-    func getSectionNotes(indexPath: IndexPath) -> [Note] {
-        
-        let sectionKey = notesSectionDates[indexPath.section]
-        
-        let sectionNotes = allNotes.filter { note in
-            let calendar = Calendar.current
-            let components = calendar.dateComponents([.month, .year], from: note.dateModified)
-            if let month = components.month, let year = components.year {
-                let key = "\(getNameMonth(month: month)) \(year)"
-                return key == sectionKey
-            }
-            return false
-        }
-        
-        return sectionNotes
     }
 
 

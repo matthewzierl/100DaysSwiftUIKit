@@ -97,17 +97,54 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         return view
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        
-        // need to find index of note in allNotes array
-        
-        if editingStyle == .delete {
-            allNotes[indexPath.section].remove(at: indexPath.row)
+    // trailing action
+    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    
+        // action: action itself you are configuring
+        // view: object on which action is being performed. Probably the UITableViewCell
+        // completionHandler: the handler that must be called when you are finished, so you can dismiss swipe actions
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] action, view, completionHandler in
+            self?.allNotes[indexPath.section].remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            print("insert")
+            if (self?.allNotes[indexPath.section].count == 0) {
+                self?.allNotes.remove(at: indexPath.section)
+                tableView.deleteSections([indexPath.section], with: .fade)
+            }
+            completionHandler(true) // signals to system you are finished deleting, dismissing swip actions
         }
+        
+        let shareAction = UIContextualAction(style: .normal, title: "Share") { [weak self] action, view, completionHandler in
+            
+            guard let note = self?.allNotes[indexPath.section][indexPath.row] else {
+                completionHandler(false)
+                return
+            }
+            let vc = UIActivityViewController(activityItems: [note.body], applicationActivities: nil)
+            self?.present(vc, animated: true)
+            completionHandler(true)
+        }
+        
+        deleteAction.backgroundColor = .systemRed
+        deleteAction.image = UIImage(systemName: "trash")
+        
+        shareAction.backgroundColor = .systemBlue
+        shareAction.image = UIImage(systemName: "square.and.arrow.up")
+        
+        let swipeActions = UISwipeActionsConfiguration(actions: [deleteAction, shareAction])
+        swipeActions.performsFirstActionWithFullSwipe = false
+        return swipeActions
+        
     }
+    
+//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+//        
+//        // need to find index of note in allNotes array
+//        
+//        if editingStyle == .delete {
+//            allNotes[indexPath.section].remove(at: indexPath.row)
+//            tableView.deleteRows(at: [indexPath], with: .fade)
+//        }
+//    }
     
     
     func sortNotes() {

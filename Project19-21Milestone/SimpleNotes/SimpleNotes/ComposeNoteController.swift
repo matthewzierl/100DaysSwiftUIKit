@@ -60,6 +60,13 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
         
         toolbarItems = [camera, flexibleSpace, compose]
         navigationController?.setToolbarHidden(false, animated: true)
+        
+        let notificationCenter = NotificationCenter.default
+        
+        
+        notificationCenter.addObserver(self, selector: #selector(adjustForKeyboard), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        notificationCenter.addObserver(self, selector: #selector(showEditingOptions), name: UIResponder.keyboardWillShowNotification, object: nil)
+        notificationCenter.addObserver(self, selector: #selector(showOptions), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
     
@@ -73,7 +80,8 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
     }
     
     @objc func shareNote(_ barButton: UIBarButtonItem) {
-        
+        let ac = UIActivityViewController(activityItems: [note!.body], applicationActivities: [])
+        present(ac, animated: true)
     }
     
     @objc func presentImageOptions(_ barButton: UIBarButtonItem) {
@@ -89,6 +97,44 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
         
         
         navigationController?.pushViewController(newNoteView, animated: true)
+    }
+    
+    // a Notification contains name of notification and dictionary
+    @objc func adjustForKeyboard(notification: Notification) {
+        guard let keyboardValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue else { return }
+        let keyboardScreenEndFrame = keyboardValue.cgRectValue
+        let keyboardViewEndFrame = view.convert(keyboardScreenEndFrame, from: view.window)
+        
+        if notification.name == UIResponder.keyboardWillHideNotification {
+            textView.contentInset = .zero
+        } else {
+            textView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: keyboardViewEndFrame.height - view.safeAreaInsets.bottom, right: 0)
+        }
+        textView.verticalScrollIndicatorInsets = textView.contentInset
+        
+        let selectedRange = textView.selectedRange
+        
+        textView.scrollRangeToVisible(selectedRange)
+        
+    }
+    
+    @objc func showOptions() {
+        if (navigationItem.rightBarButtonItems?.count != 2) {
+            navigationItem.rightBarButtonItems?.remove(at: 0)
+        }
+    }
+    
+    @objc func showEditingOptions() {
+        
+        let done = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(finishEditing))
+        if navigationItem.rightBarButtonItems?.count == 2 {
+            navigationItem.rightBarButtonItems?.insert(done, at: 0)
+        }
+    }
+    
+    @objc func finishEditing(_ button: UIBarButtonItem) {
+        // dismiss keyboard
+        textView.resignFirstResponder() // resign object that is currently receiving user input
     }
     
     func saveNote() {

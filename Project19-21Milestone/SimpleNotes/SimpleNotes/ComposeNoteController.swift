@@ -150,6 +150,14 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
         note.title = getTitle()
         note.body = textView.text
         note.dateModified = Date.now
+        
+        let jsonEncoder = JSONEncoder()
+        if let noteData = try? jsonEncoder.encode(allNotes) {
+            let defaults = UserDefaults.standard
+            defaults.setValue(noteData, forKey: "allNotes")
+        } else {
+            print("Failed to save from ComposeNoteController")
+        }
     }
     
     func getTitle() -> String {

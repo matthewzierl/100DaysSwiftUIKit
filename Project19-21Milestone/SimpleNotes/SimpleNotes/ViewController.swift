@@ -16,6 +16,16 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let defaults = UserDefaults.standard
+        if let savedData = defaults.object(forKey: "allNotes") as? Data {
+            let jsonDecoder = JSONDecoder()
+            
+            do {
+                allNotes = try jsonDecoder.decode([[Note]].self, from: savedData)
+            } catch {
+                print("Failed to load notes")
+            }
+        }
         
         // Do any additional setup after loading the view.
         
@@ -110,6 +120,14 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
                 self?.allNotes.remove(at: indexPath.section)
                 tableView.deleteSections([indexPath.section], with: .fade)
             }
+            
+            let jsonEncoder = JSONEncoder()
+            if let noteData = try? jsonEncoder.encode(self?.allNotes) {
+                let defaults = UserDefaults.standard
+                defaults.setValue(noteData, forKey: "allNotes")
+            } else {
+                completionHandler(false)
+            }
             completionHandler(true) // signals to system you are finished deleting, dismissing swip actions
         }
         
@@ -136,15 +154,6 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         
     }
     
-//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-//        
-//        // need to find index of note in allNotes array
-//        
-//        if editingStyle == .delete {
-//            allNotes[indexPath.section].remove(at: indexPath.row)
-//            tableView.deleteRows(at: [indexPath], with: .fade)
-//        }
-//    }
     
     
     func sortNotes() {

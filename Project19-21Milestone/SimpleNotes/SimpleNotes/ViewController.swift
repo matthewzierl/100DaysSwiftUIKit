@@ -7,14 +7,21 @@
 
 import UIKit
 
-class ViewController: UITableViewController, ComposeNoteControllerDelegate {
+class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPopoverPresentationControllerDelegate {
     
-    var allNotes = [[Note]]()
+    var allNotes = [[Note]]() {
+        didSet {
+            numNotesLabel.text = "\(allNotes.flatMap{$0}.count) Notes"
+        }
+    }
+    let numNotesLabel = UILabel()
+
     
     
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         
         let defaults = UserDefaults.standard
         if let savedData = defaults.object(forKey: "allNotes") as? Data {
@@ -26,6 +33,7 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
                 print("Failed to load notes")
             }
         }
+        sortNotes()
         
         // Do any additional setup after loading the view.
         
@@ -35,16 +43,16 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         // create tool bar
         
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let numNotes = UIBarButtonItem(title: "\(allNotes.count) Notes", style: .plain, target: nil, action: nil)
+        numNotesLabel.text = "\(allNotes.flatMap{$0}.count) Notes"
+        numNotesLabel.frame.size = CGSize(width: 100, height: 30)
+        numNotesLabel.font = UIFont.systemFont(ofSize: 14)
+        let numNotes = UIBarButtonItem(customView: numNotesLabel)
         let compose = UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(composeNote))
         
         toolbarItems = [flexibleSpace, numNotes, flexibleSpace, compose]
         
         navigationController?.setToolbarHidden(false, animated: true)
         
-        // TODO: Load from user default config
-        
-        // END
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -89,6 +97,7 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
         Provide number of sections
      */
     override func numberOfSections(in tableView: UITableView) -> Int {
+        print("num of sections: \(allNotes.count)")
         return allNotes.count
     }
     
@@ -192,6 +201,16 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     
     
     @objc func presentSortOptions(_ barButton: UIBarButtonItem) {
+        let popoverContentController = NoteOptionsPopover()
+        popoverContentController.modalPresentationStyle = .popover
+        
+        if let popoverPresentation = popoverContentController.popoverPresentationController {
+            popoverPresentation.permittedArrowDirections = .up
+            popoverPresentation.sourceItem = barButton
+            popoverPresentation.sourceRect = barButton.frame(in: view) ?? CGRect.zero
+            popoverPresentation.delegate = self
+            present(popoverContentController, animated: true)
+        }
         
     }
     
@@ -205,6 +224,18 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate {
     
     func composeNoteControllerDidLoad(allNotes: [[Note]]) {
         self.allNotes = allNotes
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return .none
+    }
+
+    func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) {
+
+    }
+
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool {
+        return true
     }
 
 

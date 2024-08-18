@@ -7,7 +7,8 @@
 
 import UIKit
 
-class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPopoverPresentationControllerDelegate {
+class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPopoverPresentationControllerDelegate, NoteOptionsPopoverDelegate {
+    
     
     var allNotes = [[Note]]() {
         didSet {
@@ -34,6 +35,8 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
             }
         }
         sortNotes()
+        
+        tableView.allowsMultipleSelectionDuringEditing = true // for "select notes"
         
         // Do any additional setup after loading the view.
         
@@ -77,13 +80,16 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
         var configuration = cell.defaultContentConfiguration()
 
         configuration.text = note.title
+
         
         cell.contentConfiguration = configuration
-        
+                
         return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        if tableView.isEditing { return }
         
         let note = allNotes[indexPath.section][indexPath.row]
         
@@ -97,7 +103,6 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
         Provide number of sections
      */
     override func numberOfSections(in tableView: UITableView) -> Int {
-        print("num of sections: \(allNotes.count)")
         return allNotes.count
     }
     
@@ -165,6 +170,7 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
     
     
     
+    
     func sortNotes() {
         
         var flatArray = allNotes.flatMap { $0 }
@@ -203,6 +209,7 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
     @objc func presentSortOptions(_ barButton: UIBarButtonItem) {
         let popoverContentController = NoteOptionsPopover()
         popoverContentController.modalPresentationStyle = .popover
+        popoverContentController.delegate = self
         
         if let popoverPresentation = popoverContentController.popoverPresentationController {
             popoverPresentation.permittedArrowDirections = .up
@@ -214,7 +221,12 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
         
     }
     
-    @objc func composeNote(_ barButton: UIBarButtonItem) {
+    @objc func endEditing() {
+        tableView.setEditing(false, animated: true)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(presentSortOptions))
+    }
+    
+    @objc func composeNote() {
         
         let newNoteView = ComposeNoteController(note: nil, allNotes: allNotes)
         newNoteView.delegate = self
@@ -225,6 +237,26 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
     func composeNoteControllerDidLoad(allNotes: [[Note]]) {
         self.allNotes = allNotes
     }
+    
+    func changeNoteView(type: String) {
+        
+    }
+    
+    func selectNotes() {
+        tableView.setEditing(true, animated: true)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(endEditing))
+    }
+    
+    func openRandomNote() {
+        let section = allNotes[Int.random(in: 0..<allNotes.count)]
+        let note = section[Int.random(in: 0..<section.count)]
+        
+        let newNoteView = ComposeNoteController(note: note, allNotes: allNotes)
+        newNoteView.delegate = self
+        
+        navigationController?.pushViewController(newNoteView, animated: true)
+    }
+    
     
     func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
         return .none

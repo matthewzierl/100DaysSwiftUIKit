@@ -10,6 +10,8 @@ import UIKit
 class NoteOptionsPopover: UITableViewController {
     
     var options = ["View as Gallery", "Select Notes", "Open Random Note", "Compose Note"]
+    
+    var delegate: NoteOptionsPopoverDelegate?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,7 +42,7 @@ class NoteOptionsPopover: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "OptionCell", for: indexPath)
-        var option = options[indexPath.row]
+        let option = options[indexPath.row]
         
         var config = cell.defaultContentConfiguration()
         config.text = option
@@ -65,8 +67,36 @@ class NoteOptionsPopover: UITableViewController {
         cell.contentConfiguration = config
         cell.accessoryView = imageView
         
+        
+        
         return cell
         
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        switch options[indexPath.row] {
+        case "View as Gallery":
+            // tell main view to change view
+            // switch cell for "View as List"
+            break
+        case "Select Notes":
+            // let cells be selectable?
+            delegate?.selectNotes()
+            dismiss(animated: true)
+            break
+        case "Open Random Note":
+            // choose random note to push to navigation stack
+            delegate?.openRandomNote()
+            dismiss(animated: true)
+            break
+        case "Compose Note":
+            // tell main view to compose new note
+            delegate?.composeNote()
+            dismiss(animated: true)
+            break
+        default:
+            break
+        }
     }
 
     /*
@@ -114,4 +144,11 @@ class NoteOptionsPopover: UITableViewController {
     }
     */
 
+}
+
+protocol NoteOptionsPopoverDelegate {
+    func changeNoteView(type: String)
+    func selectNotes()
+    func openRandomNote()
+    func composeNote()
 }

@@ -10,6 +10,8 @@ import UIKit
 class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPopoverPresentationControllerDelegate, NoteOptionsPopoverDelegate {
     
     
+    var selectedNotes = [Note]()
+    
     var allNotes = [[Note]]() {
         didSet {
             numNotesLabel.text = "\(allNotes.flatMap{$0}.count) Notes"
@@ -87,9 +89,24 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
         return cell
     }
     
+    override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        if tableView.isEditing {
+            print("removing note from selected notes")
+            let deselectedNote = allNotes[indexPath.section][indexPath.row]
+            selectedNotes.removeAll(where: {$0.dateModified == deselectedNote.dateModified})
+            print("selected notes now has \(selectedNotes.count) notes")
+            return
+        }
+    }
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        if tableView.isEditing { return }
+        if tableView.isEditing {
+            print("adding note to selected notes")
+            selectedNotes.append(allNotes[indexPath.section][indexPath.row])
+            print("selected notes now has \(selectedNotes.count) notes")
+            return
+        }
         
         let note = allNotes[indexPath.section][indexPath.row]
         
@@ -223,6 +240,20 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
     
     @objc func endEditing() {
         tableView.setEditing(false, animated: true)
+        
+        // restore toolbar
+        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        numNotesLabel.text = "\(allNotes.flatMap{$0}.count) Notes"
+        numNotesLabel.frame.size = CGSize(width: 100, height: 30)
+        numNotesLabel.font = UIFont.systemFont(ofSize: 14)
+        let numNotes = UIBarButtonItem(customView: numNotesLabel)
+        let compose = UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(composeNote))
+        
+        toolbarItems = [flexibleSpace, numNotes, flexibleSpace, compose]
+        
+        // clear selection
+        selectedNotes.removeAll()
+        
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(presentSortOptions))
     }
     
@@ -232,6 +263,27 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
         newNoteView.delegate = self
         
         navigationController?.pushViewController(newNoteView, animated: true)
+    }
+    
+    @objc func deleteSelectedNotes() {
+        print("deleting selected notes... (size: \(selectedNotes.count))")
+        for (sectionIndex, var section) in allNotes.enumerated().reversed() {
+            print("searching section \(sectionIndex)")
+            for (index, note) in section.enumerated().reversed() where selectedNotes.contains(where: { $0.dateModified == note.dateModified }) {
+                section.remove(at: index)
+                allNotes[sectionIndex] = section
+                let indexPath = IndexPath(row: index, section: sectionIndex)
+                tableView.deleteRows(at: [indexPath], with: .fade)
+                print("removed from table view")
+            }
+            
+            if section.isEmpty {
+                allNotes.remove(at: sectionIndex)
+                tableView.deleteSections(IndexSet(integer: sectionIndex), with: .fade)
+            }
+        }
+        selectedNotes.removeAll()
+        saveNotes()
     }
     
     func composeNoteControllerDidLoad(allNotes: [[Note]]) {
@@ -244,6 +296,9 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
     
     func selectNotes() {
         tableView.setEditing(true, animated: true)
+        let deleteAll = UIBarButtonItem(title: "Delete All", style: .plain, target: self, action: #selector(deleteSelectedNotes))
+        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        toolbarItems = [flexibleSpace, deleteAll]
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(endEditing))
     }
     
@@ -268,6 +323,18 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
 
     func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool {
         return true
+    }
+    
+    func saveNotes() {
+        let jsonEncoder = JSONEncoder()
+        
+        if let allNotesData = try? jsonEncoder.encode(allNotes) {
+            print("saving notes")
+            let defaults = UserDefaults.standard
+            defaults.setValue(allNotesData, forKey: "allNotes")
+        } else {
+            print("Failed to save allNotes")
+        }
     }
 
 

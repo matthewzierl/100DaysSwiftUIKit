@@ -90,10 +90,12 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "SectionHeader")
+        collectionView.allowsMultipleSelectionDuringEditing = true
         
         collectionView.register(NoteCollectionViewCell.self, forCellWithReuseIdentifier: "NoteCell")
         
         collectionView.isHidden = !isCollectionView
+        
         
         view.addSubview(collectionView)
     }
@@ -119,7 +121,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         collectionView.isHidden = !isCollectionView
         
         if isCollectionView {
-            print("collectionView reloading data...")
             collectionView.reloadData()
         } else {
             tableView.reloadData()
@@ -360,7 +361,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     @objc func endEditing() {
-        tableView.setEditing(false, animated: true)
+        if isCollectionView {
+            collectionView.isEditing = false
+            for case let note as NoteCollectionViewCell in collectionView.visibleCells {
+                note.isEditMode = false
+            }
+        } else {
+            tableView.setEditing(false, animated: true)
+        }
+        
         
         // restore toolbar
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
@@ -394,13 +403,20 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 section.remove(at: index)
                 allNotes[sectionIndex] = section
                 let indexPath = IndexPath(row: index, section: sectionIndex)
-                tableView.deleteRows(at: [indexPath], with: .fade)
-                print("removed from table view")
+                if isCollectionView {
+                    collectionView.deleteItems(at: [indexPath])
+                } else {
+                    tableView.deleteRows(at: [indexPath], with: .fade)
+                }
             }
             
             if section.isEmpty {
                 allNotes.remove(at: sectionIndex)
-                tableView.deleteSections(IndexSet(integer: sectionIndex), with: .fade)
+                if isCollectionView {
+                    collectionView.deleteSections(IndexSet(integer: sectionIndex))
+                } else {
+                    tableView.deleteSections(IndexSet(integer: sectionIndex), with: .fade)
+                }
             }
         }
         selectedNotes.removeAll()
@@ -413,7 +429,14 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     func selectNotes() {
         print("Select notes")
-        tableView.setEditing(true, animated: true)
+        if isCollectionView {
+            collectionView.isEditing = true
+            for case let note as NoteCollectionViewCell in collectionView.visibleCells {
+                note.isEditMode = true
+            }
+        } else {
+            tableView.setEditing(true, animated: true)
+        }
         let deleteAll = UIBarButtonItem(title: "Delete All", style: .plain, target: self, action: #selector(deleteSelectedNotes))
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         toolbarItems = [flexibleSpace, deleteAll]

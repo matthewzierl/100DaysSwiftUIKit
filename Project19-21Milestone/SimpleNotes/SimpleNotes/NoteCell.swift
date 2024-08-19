@@ -24,11 +24,6 @@ class NoteCell: UITableViewCell {
     
     override func setEditing(_ editing: Bool, animated: Bool) {
         super.setEditing(editing, animated: animated)
-        if editing {
-            print("cell going into edit mode")
-        } else {
-            print("cell going back to normal")
-        }
     }
 
 }

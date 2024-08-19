@@ -73,6 +73,11 @@ class NoteOptionsPopover: UITableViewController {
         
     }
     
+    override func setEditing(_ editing: Bool, animated: Bool) {
+        super.setEditing(editing, animated: animated)
+        self.isEditing = true
+    }
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch options[indexPath.row] {
         case "View as Gallery":

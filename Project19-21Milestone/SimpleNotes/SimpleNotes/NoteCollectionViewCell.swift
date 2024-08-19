@@ -61,7 +61,8 @@ class NoteCollectionViewCell: UICollectionViewCell {
         
         // Configure title label
         title = UILabel()
-        title.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        title.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        title.numberOfLines = 2
         title.textAlignment = .center
         title.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(title)
@@ -69,13 +70,13 @@ class NoteCollectionViewCell: UICollectionViewCell {
         // Configure selection overlays
         notSelectedImage = UIImageView(image: UIImage(systemName: "circle"))
         notSelectedImage.isHidden = true // Initially hidden
-        notSelectedImage.layer.position = CGPoint(x: 57.5, y: 90)
+        notSelectedImage.layer.position = CGPoint(x: 57.5, y: 60)
         contentView.addSubview(notSelectedImage)
         
         
         selectedImage = UIImageView(image: UIImage(systemName: "checkmark.circle"))
         selectedImage.isHidden = true
-        selectedImage.layer.position = CGPoint(x: 57.5, y: 90)
+        selectedImage.layer.position = CGPoint(x: 57.5, y: 60)
         contentView.addSubview(selectedImage)
         
         

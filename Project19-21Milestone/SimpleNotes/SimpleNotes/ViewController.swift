@@ -51,6 +51,23 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         navigationItem.title = "Notes"
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(presentSortOptions))
         
+        navigationController?.navigationBar.alpha = 1
+        
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+        ])
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -84,8 +101,12 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     func setupCollectionView() {
         let layout = UICollectionViewFlowLayout()
-        layout.itemSize = CGSize(width: 115, height: 140)
+        layout.itemSize = CGSize(width: 110, height: 100)
         layout.headerReferenceSize = CGSize(width: view.frame.width, height: 40)
+        layout.sectionInset.left = 10
+        layout.sectionInset.right = 10
+        layout.sectionInset.top = 5
+        layout.sectionInset.bottom = 5
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -109,6 +130,9 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         let compose = UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(composeNote))
         
         toolbarItems = [flexibleSpace, numNotes, flexibleSpace, compose]
+        
+        navigationController?.toolbar.alpha = 1
+        navigationController?.toolbar.isTranslucent = true
         
         navigationController?.setToolbarHidden(false, animated: true)
     }
@@ -181,6 +205,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
      */
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 40))
+        
+        view.backgroundColor = .systemBackground
         
         let label = UILabel(frame: CGRect(x: 15, y: 0, width: tableView.frame.width, height: 40))
         label.font = UIFont(name: "Kailasa-Bold", size: 20)

@@ -29,14 +29,22 @@ class NoteCollectionViewCell: UICollectionViewCell {
     
     override var isSelected: Bool {
         didSet {
-            if isEditMode == false { return }
-            notSelectedImage.isHidden = isSelected
-            selectedImage.isHidden = !isSelected
-            if isSelected {
-                noteView.layer.borderWidth = 3
+            if isEditMode {
+                notSelectedImage.isHidden = isSelected
+                selectedImage.isHidden = !isSelected
+                if isSelected {
+                    noteView.layer.borderWidth = 3
+                } else {
+                    noteView.layer.borderWidth = 0
+                }
             } else {
-                noteView.layer.borderWidth = 0
+                if isSelected {
+                    noteView.layer.borderWidth = 3
+                } else {
+                    noteView.layer.borderWidth = 0
+                }
             }
+            
         }
     }
     
@@ -44,7 +52,7 @@ class NoteCollectionViewCell: UICollectionViewCell {
     private func setupViews() {
         // Configure noteView
         noteView = UIView()
-        noteView.backgroundColor = .systemRed // Example background color
+        noteView.backgroundColor = .systemCyan // Example background color
         noteView.layer.cornerRadius = 8
         noteView.translatesAutoresizingMaskIntoConstraints = false
         noteView.layer.borderWidth = 0

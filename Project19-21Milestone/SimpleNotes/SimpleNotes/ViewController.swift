@@ -85,7 +85,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func setupCollectionView() {
         let layout = UICollectionViewFlowLayout()
         layout.itemSize = CGSize(width: 115, height: 140)
-        
+        layout.headerReferenceSize = CGSize(width: view.frame.width, height: 40)
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -261,9 +261,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if collectionView.isEditing {
-            print("adding note to selected notes")
             selectedNotes.append(allNotes[indexPath.section][indexPath.row])
-            print("selected notes now has \(selectedNotes.count) notes")
             return
         }
         
@@ -288,14 +286,20 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         print("in viewForSupplementary")
         if kind == UICollectionView.elementKindSectionHeader {
+            print("need to make a header")
             let sectionHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath)
             
-            sectionHeader.subviews.forEach { $0.removeFromSuperview() }
+            sectionHeader.subviews.forEach { $0.removeFromSuperview() } // remove all other views?
             
             let label = UILabel()
             label.font = UIFont(name: "Kailasa-Bold", size: 20)
             label.text = allNotes[indexPath.section][0].key
+            
+            label.frame = sectionHeader.frame
+            
+                        
             sectionHeader.addSubview(label)
+            
             return sectionHeader
         } else {
             return UICollectionReusableView()

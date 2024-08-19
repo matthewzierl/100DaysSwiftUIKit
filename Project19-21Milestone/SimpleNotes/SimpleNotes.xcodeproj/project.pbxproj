@@ -17,7 +17,6 @@
 		B5DA63402C6D175E00836BF3 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DA633F2C6D175E00836BF3 /* Note.swift */; };
 		B5DA63462C71995A00836BF3 /* NoteOptionsPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DA63452C71995A00836BF3 /* NoteOptionsPopover.swift */; };
 		B5DA634A2C71E64C00836BF3 /* NoteCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DA63492C71E64C00836BF3 /* NoteCell.swift */; };
-		B5DA634C2C72596700836BF3 /* NoteCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DA634B2C72596700836BF3 /* NoteCollectionViewController.swift */; };
 		B5DA634E2C725B4F00836BF3 /* NoteCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DA634D2C725B4F00836BF3 /* NoteCollectionViewCell.swift */; };
 /* End PBXBuildFile section */
 
@@ -34,7 +33,6 @@
 		B5DA633F2C6D175E00836BF3 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
 		B5DA63452C71995A00836BF3 /* NoteOptionsPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteOptionsPopover.swift; sourceTree = "<group>"; };
 		B5DA63492C71E64C00836BF3 /* NoteCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCell.swift; sourceTree = "<group>"; };
-		B5DA634B2C72596700836BF3 /* NoteCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollectionViewController.swift; sourceTree = "<group>"; };
 		B5DA634D2C725B4F00836BF3 /* NoteCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollectionViewCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -72,7 +70,6 @@
 				B5DA63292C6CC26A00836BF3 /* SceneDelegate.swift */,
 				B5DA632B2C6CC26A00836BF3 /* ViewController.swift */,
 				B5DA63452C71995A00836BF3 /* NoteOptionsPopover.swift */,
-				B5DA634B2C72596700836BF3 /* NoteCollectionViewController.swift */,
 				B5DA633F2C6D175E00836BF3 /* Note.swift */,
 				B5DA633D2C6D152B00836BF3 /* ComposeNoteController.swift */,
 				B5DA634D2C725B4F00836BF3 /* NoteCollectionViewCell.swift */,
@@ -163,7 +160,6 @@
 				B5DA63282C6CC26A00836BF3 /* AppDelegate.swift in Sources */,
 				B5DA633E2C6D152B00836BF3 /* ComposeNoteController.swift in Sources */,
 				B5DA634A2C71E64C00836BF3 /* NoteCell.swift in Sources */,
-				B5DA634C2C72596700836BF3 /* NoteCollectionViewController.swift in Sources */,
 				B5DA632A2C6CC26A00836BF3 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

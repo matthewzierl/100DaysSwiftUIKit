@@ -78,6 +78,8 @@ class NoteOptionsPopover: UITableViewController {
         case "View as Gallery":
             // tell main view to change view
             // switch cell for "View as List"
+            delegate?.switchViewMode()
+            dismiss(animated: true)
             break
         case "Select Notes":
             // let cells be selectable?
@@ -147,7 +149,7 @@ class NoteOptionsPopover: UITableViewController {
 }
 
 protocol NoteOptionsPopoverDelegate {
-    func changeNoteView(type: String)
+    func switchViewMode()
     func selectNotes()
     func openRandomNote()
     func composeNote()

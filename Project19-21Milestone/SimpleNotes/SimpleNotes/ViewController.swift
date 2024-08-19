@@ -7,17 +7,22 @@
 
 import UIKit
 
-class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPopoverPresentationControllerDelegate, NoteOptionsPopoverDelegate {
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate, ComposeNoteControllerDelegate, UIPopoverPresentationControllerDelegate, NoteOptionsPopoverDelegate {
     
     
     var selectedNotes = [Note]()
-    
     var allNotes = [[Note]]() {
         didSet {
             numNotesLabel.text = "\(allNotes.flatMap{$0}.count) Notes"
         }
     }
+    
     let numNotesLabel = UILabel()
+    
+    var tableView: UITableView!
+    var collectionView: UICollectionView!
+    
+    var isCollectionView = false
 
     
     
@@ -36,17 +41,64 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
                 print("Failed to load notes")
             }
         }
+        
         sortNotes()
         
-        tableView.allowsMultipleSelectionDuringEditing = true // for "select notes"
-        
-        // Do any additional setup after loading the view.
+        setupTableView()
+        setupCollectionView()
+        setupToolbar()
         
         navigationItem.title = "Notes"
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(presentSortOptions))
         
-        // create tool bar
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         
+        // only want to refresh when needing to present it
+        sortNotes()
+        
+        if isCollectionView {
+            collectionView.reloadData()
+        } else {
+            tableView.reloadData()
+        }
+    }
+    
+    func setupTableView() {
+        
+        
+        tableView = UITableView(frame: view.bounds)
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.allowsMultipleSelectionDuringEditing = true // for "select notes"
+        
+        tableView.register(NoteCell.self, forCellReuseIdentifier: "NoteCell")
+        
+        tableView.isHidden = isCollectionView
+        
+        view.addSubview(tableView)
+        
+    }
+    
+    func setupCollectionView() {
+        let layout = UICollectionViewFlowLayout()
+        layout.itemSize = CGSize(width: 115, height: 140)
+        
+        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "SectionHeader")
+        
+        collectionView.register(NoteCollectionViewCell.self, forCellWithReuseIdentifier: "NoteCell")
+        
+        collectionView.isHidden = !isCollectionView
+        
+        view.addSubview(collectionView)
+    }
+    
+    func setupToolbar() {
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         numNotesLabel.text = "\(allNotes.flatMap{$0}.count) Notes"
         numNotesLabel.frame.size = CGSize(width: 100, height: 30)
@@ -57,23 +109,34 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
         toolbarItems = [flexibleSpace, numNotes, flexibleSpace, compose]
         
         navigationController?.setToolbarHidden(false, animated: true)
-        
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    @objc func switchViewMode() {
         
-        // only want to refresh when needing to present it
-        sortNotes()
-        tableView.reloadData()
+        isCollectionView.toggle() // switch when pressed/called
+        
+        tableView.isHidden = isCollectionView
+        collectionView.isHidden = !isCollectionView
+        
+        if isCollectionView {
+            print("collectionView reloading data...")
+            collectionView.reloadData()
+        } else {
+            tableView.reloadData()
+        }
     }
     
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    // MARK: tableView Data Source methods
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return allNotes.count
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return allNotes[section].count
     }
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let note = allNotes[indexPath.section][indexPath.row]
         
@@ -85,26 +148,22 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
 
         
         cell.contentConfiguration = configuration
+        
                 
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         if tableView.isEditing {
-            print("removing note from selected notes")
             let deselectedNote = allNotes[indexPath.section][indexPath.row]
             selectedNotes.removeAll(where: {$0.dateModified == deselectedNote.dateModified})
-            print("selected notes now has \(selectedNotes.count) notes")
             return
         }
     }
     
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if tableView.isEditing {
-            print("adding note to selected notes")
             selectedNotes.append(allNotes[indexPath.section][indexPath.row])
-            print("selected notes now has \(selectedNotes.count) notes")
             return
         }
         
@@ -117,16 +176,9 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
     }
     
     /*
-        Provide number of sections
-     */
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return allNotes.count
-    }
-    
-    /*
         
      */
-    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 40))
         
         let label = UILabel(frame: CGRect(x: 15, y: 0, width: tableView.frame.width, height: 40))
@@ -139,7 +191,7 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
     }
     
     // trailing action
-    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
     
         // action: action itself you are configuring
         // view: object on which action is being performed. Probably the UITableViewCell
@@ -183,6 +235,75 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
         swipeActions.performsFirstActionWithFullSwipe = false
         return swipeActions
         
+    }
+    
+    // MARK: collectionView Data Source methods
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return allNotes.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return allNotes[section].count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NoteCell", for: indexPath) as? NoteCollectionViewCell else { fatalError("Unable to dequeue collecition view cell") }
+        
+        let note = allNotes[indexPath.section][indexPath.row]
+        
+        cell.title.text = note.title
+        // TODO: snapshot of note view
+        
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if collectionView.isEditing {
+            print("adding note to selected notes")
+            selectedNotes.append(allNotes[indexPath.section][indexPath.row])
+            print("selected notes now has \(selectedNotes.count) notes")
+            return
+        }
+        
+        let note = allNotes[indexPath.section][indexPath.row]
+        
+        let newNoteView = ComposeNoteController(note: note, allNotes: allNotes)
+        newNoteView.delegate = self
+        
+        navigationController?.pushViewController(newNoteView, animated: true)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        if collectionView.isEditing {
+            print("removing note from selected notes")
+            let deselectedNote = allNotes[indexPath.section][indexPath.row]
+            selectedNotes.removeAll(where: {$0.dateModified == deselectedNote.dateModified})
+            print("selected notes now has \(selectedNotes.count) notes")
+            return
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        print("in viewForSupplementary")
+        if kind == UICollectionView.elementKindSectionHeader {
+            let sectionHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath)
+            
+            sectionHeader.subviews.forEach { $0.removeFromSuperview() }
+            
+            let label = UILabel()
+            label.font = UIFont(name: "Kailasa-Bold", size: 20)
+            label.text = allNotes[indexPath.section][0].key
+            sectionHeader.addSubview(label)
+            return sectionHeader
+        } else {
+            return UICollectionReusableView()
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        print("in referenceSizeForHeaderInSection")
+        return CGSize(width: collectionView.frame.width, height: 40)
     }
     
     
@@ -290,11 +411,8 @@ class ViewController: UITableViewController, ComposeNoteControllerDelegate, UIPo
         self.allNotes = allNotes
     }
     
-    func changeNoteView(type: String) {
-        
-    }
-    
     func selectNotes() {
+        print("Select notes")
         tableView.setEditing(true, animated: true)
         let deleteAll = UIBarButtonItem(title: "Delete All", style: .plain, target: self, action: #selector(deleteSelectedNotes))
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)

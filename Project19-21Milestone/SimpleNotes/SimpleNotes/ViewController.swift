@@ -21,8 +21,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     var tableView: UITableView!
     var collectionView: UICollectionView!
+    var popoverContentController: NoteOptionsPopover!
     
-    var isCollectionView = false
+    var isCollectionView = false {
+        didSet {
+            popoverContentController.isCollectionView = isCollectionView
+        }
+    }
 
     
     
@@ -47,25 +52,26 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         setupTableView()
         setupCollectionView()
         setupToolbar()
+        setupPopover()
         
         navigationItem.title = "Notes"
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(presentSortOptions))
         
         navigationController?.navigationBar.alpha = 1
         
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        
         tableView.translatesAutoresizingMaskIntoConstraints = false
-
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
         ])
         
     }
@@ -95,6 +101,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         tableView.isHidden = isCollectionView
         
+        
         view.addSubview(tableView)
         
     }
@@ -118,6 +125,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         collectionView.isHidden = !isCollectionView
         
         
+        
         view.addSubview(collectionView)
     }
     
@@ -135,6 +143,12 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         navigationController?.toolbar.isTranslucent = true
         
         navigationController?.setToolbarHidden(false, animated: true)
+    }
+    
+    func setupPopover() {
+        popoverContentController = NoteOptionsPopover()
+        popoverContentController.modalPresentationStyle = .popover
+        popoverContentController.delegate = self
     }
     
     @objc func switchViewMode() {
@@ -280,7 +294,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         let note = allNotes[indexPath.section][indexPath.row]
         
         cell.title.text = note.title
-        // TODO: snapshot of note view
+        cell.cellNote = note
         
         return cell
     }
@@ -310,9 +324,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        print("in viewForSupplementary")
         if kind == UICollectionView.elementKindSectionHeader {
-            print("need to make a header")
             let sectionHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath)
             
             sectionHeader.subviews.forEach { $0.removeFromSuperview() } // remove all other views?
@@ -376,9 +388,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     
     @objc func presentSortOptions(_ barButton: UIBarButtonItem) {
-        let popoverContentController = NoteOptionsPopover()
-        popoverContentController.modalPresentationStyle = .popover
-        popoverContentController.delegate = self
         
         if let popoverPresentation = popoverContentController.popoverPresentationController {
             popoverPresentation.permittedArrowDirections = .up
@@ -426,9 +435,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     @objc func deleteSelectedNotes() {
-        print("deleting selected notes... (size: \(selectedNotes.count))")
         for (sectionIndex, var section) in allNotes.enumerated().reversed() {
-            print("searching section \(sectionIndex)")
             for (index, note) in section.enumerated().reversed() where selectedNotes.contains(where: { $0.dateModified == note.dateModified }) {
                 section.remove(at: index)
                 allNotes[sectionIndex] = section

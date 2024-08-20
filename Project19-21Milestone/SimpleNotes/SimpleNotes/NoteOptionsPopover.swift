@@ -12,6 +12,17 @@ class NoteOptionsPopover: UITableViewController {
     var options = ["View as Gallery", "Select Notes", "Open Random Note", "Compose Note"]
     
     var delegate: NoteOptionsPopoverDelegate?
+    
+    var isCollectionView = false {
+        didSet {
+            if isCollectionView {
+                options = ["View as List", "Select Notes", "Open Random Note", "Compose Note"]
+            } else {
+                options = ["View as Gallery", "Select Notes", "Open Random Note", "Compose Note"]
+            }
+            tableView.reloadData()
+        }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,12 +55,15 @@ class NoteOptionsPopover: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "OptionCell", for: indexPath)
         let option = options[indexPath.row]
         
+        
         var config = cell.defaultContentConfiguration()
         config.text = option
         
         var image: UIImage!
         
         switch option {
+        case "View as List":
+            image = UIImage(systemName: "list.bullet")
         case "View as Gallery":
             image = UIImage(systemName: "square.grid.2x2")
         case "Select Notes":
@@ -80,6 +94,10 @@ class NoteOptionsPopover: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch options[indexPath.row] {
+        case "View as List":
+            delegate?.switchViewMode()
+            dismiss(animated: true)
+            break
         case "View as Gallery":
             // tell main view to change view
             // switch cell for "View as List"

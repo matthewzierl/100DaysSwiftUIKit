@@ -3,6 +3,8 @@ import UIKit
 class NoteCollectionViewCell: UICollectionViewCell {
     var noteView: UIView!
     var title: UILabel!
+    var textView: UITextView!
+    var cellNote: Note?
     
     var notSelectedImage: UIImageView!
     var selectedImage: UIImageView!
@@ -53,14 +55,22 @@ class NoteCollectionViewCell: UICollectionViewCell {
         // Configure noteView
         noteView = UIView()
         noteView.backgroundColor = .systemCyan // Example background color
+        
+        textView = UITextView()
+        textView.text = cellNote?.body
+        
+        
+        
         noteView.layer.cornerRadius = 8
         noteView.translatesAutoresizingMaskIntoConstraints = false
         noteView.layer.borderWidth = 0
         noteView.layer.borderColor = CGColor(red: 0, green: 0, blue: 1, alpha: 1)
+        
         contentView.addSubview(noteView)
         
         // Configure title label
         title = UILabel()
+        title.text = cellNote?.title
         title.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         title.numberOfLines = 2
         title.textAlignment = .center

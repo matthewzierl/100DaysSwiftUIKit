@@ -22,21 +22,31 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BA6-Gd-4m2">
+                                <rect key="frame" x="169.66666666666666" y="486" width="53.666666666666657" height="22"/>
+                                <fontDescription key="fontDescription" type="system" weight="thin" pointSize="18"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="Gqf-r6-fa0" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="14p-ma-Qjy"/>
-                            <constraint firstItem="Gqf-r6-fa0" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="Yk6-FH-rbn"/>
+                            <constraint firstItem="Gqf-r6-fa0" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="1LD-qt-69M"/>
+                            <constraint firstItem="Gqf-r6-fa0" firstAttribute="centerX" secondItem="BA6-Gd-4m2" secondAttribute="centerX" id="7eA-Dh-OTj"/>
+                            <constraint firstItem="Gqf-r6-fa0" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="355.66666666666669" id="G4U-2H-xIL"/>
+                            <constraint firstItem="BA6-Gd-4m2" firstAttribute="top" secondItem="Gqf-r6-fa0" secondAttribute="bottom" constant="23.333333333333314" id="PLy-XI-kYF"/>
+                            <constraint firstItem="BA6-Gd-4m2" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="169.66666666666666" id="z3L-kl-QjF"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="beaconLabel" destination="BA6-Gd-4m2" id="5G0-aF-vgc"/>
                         <outlet property="distanceReading" destination="Gqf-r6-fa0" id="pzJ-Ud-OFv"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="63" y="4"/>
+            <point key="canvasLocation" x="61.832061068702288" y="3.5211267605633805"/>
         </scene>
     </scenes>
     <resources>

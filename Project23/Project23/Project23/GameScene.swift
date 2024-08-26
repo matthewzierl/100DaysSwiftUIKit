@@ -19,6 +19,12 @@ class GameScene: SKScene {
         case oneNoBomb, one, twoWithOneBomb, two, three, four, chain, fastChain
     }
     
+    let fastRange = 8...15
+    let slowRange = 3...5
+    let yVelocityRange = 32...40
+    
+    let enemyPhysicsBodyRadius: CGFloat = 128
+    
     let myWidth: Double = 2778
     let myHeight: Double = 1284
     
@@ -184,6 +190,32 @@ class GameScene: SKScene {
                 
                 run(SKAction.playSoundFileNamed("whack.caf", waitForCompletion: false))
                 
+            } else if node.name == "specialEnemy" {
+                // destroy the penguin
+                if let emitter = SKEmitterNode(fileNamed: "sliceHitEnemy") {
+                    emitter.position = node.position
+                    addChild(emitter)
+                }
+                node.name = ""
+                node.physicsBody?.isDynamic = false
+                
+                let scaleOut = SKAction.scale(to: 0.001, duration: 0.2)
+                let fadeOut = SKAction.fadeOut(withDuration: 0.2)
+                
+                let group = SKAction.group([scaleOut, fadeOut]) // execute simultaneously
+                
+                let seq = SKAction.sequence([group, .removeFromParent()]) // create sequence to destroy node after finishing
+                
+                node.run(seq)
+                
+                score += 3
+                
+                if let index = activeEnemies.firstIndex(of: node) {
+                    activeEnemies.remove(at: index)
+                }
+                
+                run(SKAction.playSoundFileNamed("whack.caf", waitForCompletion: false))
+                
             } else if node.name == "bomb" {
                 // destroy the bomb
                 guard let bombContainer = node.parent as? SKSpriteNode else {
@@ -273,10 +305,10 @@ class GameScene: SKScene {
     func createEnemy(forceBomb: ForceBomb = .random) { // default value of .random
         let enemy: SKSpriteNode
         
-        var enemyType = Int.random(in: 0...6)
+        var enemyType = Int.random(in: 0...8)
         
         if forceBomb == .never {
-            enemyType = 1
+            enemyType = 2
         } else if forceBomb == .always {
             enemyType = 0
         }
@@ -307,11 +339,17 @@ class GameScene: SKScene {
                 emitter.position = CGPoint(x: 76, y: 64)
                 enemy.addChild(emitter)
             }
+        } else if enemyType == 1 {
+            // special penguin
+            enemy = SKSpriteNode(imageNamed: "penguinEvil")
+            run(SKAction.playSoundFileNamed("launch.caf", waitForCompletion: false))
+            enemy.name = "specialEnemy"
         } else {
             enemy = SKSpriteNode(imageNamed: "penguin")
             run(SKAction.playSoundFileNamed("launch.caf", waitForCompletion: false))
             enemy.name = "enemy"
         }
+        
         
         let randomPosition = CGPoint(x: Int.random(in: 64...Int(myWidth)), y: -128)
         enemy.position = randomPosition
@@ -320,18 +358,18 @@ class GameScene: SKScene {
         let randomXVelocity: Int
         
         if randomPosition.x < myWidth * 0.25 {
-            randomXVelocity = Int.random(in: 8...15)
+            randomXVelocity = Int.random(in: fastRange)
         } else if randomPosition.x < myWidth * 0.5 {
-            randomXVelocity = Int.random(in: 3...5)
+            randomXVelocity = Int.random(in: slowRange)
         } else if randomPosition.x < myWidth * 0.75 {
-            randomXVelocity = -Int.random(in: 3...5)
+            randomXVelocity = -Int.random(in: slowRange)
         } else {
-            randomXVelocity = -Int.random(in: 8...15)
+            randomXVelocity = -Int.random(in: fastRange)
         }
         
-        let randomYVelocity = Int.random(in: 24...32)
+        let randomYVelocity = Int.random(in: yVelocityRange)
         
-        enemy.physicsBody = SKPhysicsBody(circleOfRadius: 64)
+        enemy.physicsBody = SKPhysicsBody(circleOfRadius: enemyPhysicsBodyRadius)
         enemy.physicsBody?.velocity = CGVector(dx: randomXVelocity * 40, dy: randomYVelocity * 40)
         enemy.physicsBody?.angularVelocity = randomAngularVelocity
         enemy.physicsBody?.collisionBitMask = 0 // bounce of nothing
@@ -357,8 +395,10 @@ class GameScene: SKScene {
         }
         
         life.texture = SKTexture(imageNamed: "sliceLifeGone")
-        life.setScale(2.3)
-        life.run(SKAction.scale(by: 2, duration: 0.1))
+//        life.setScale(2.3)
+        life.run(SKAction.scale(by: 1.5, duration: 0.1)) {
+            life.run(SKAction.scale(by: 0.75, duration: 0.1))
+        }
     }
     
     override func update(_ currentTime: TimeInterval) {
@@ -367,7 +407,7 @@ class GameScene: SKScene {
             for (index, node) in activeEnemies.enumerated().reversed() {
                 if node.position.y <  -140 {
                     node.removeAllActions()
-                    if node.name == "enemy" {
+                    if node.name == "enemy" || node.name == "specialEnemy"{
                         node.name = ""
                         subtractLife()
                         

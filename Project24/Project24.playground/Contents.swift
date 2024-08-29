@@ -42,7 +42,7 @@ extension String {
 print(string.withPrefix("This"))
 print(string.isNumeric())
 
-let test = "this\nis\na\ntest"
+let test = "this\nis\na\ntest,"
 var arr = test.splitByLines()
 print(test)
 for sub in arr {

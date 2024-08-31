@@ -83,61 +83,62 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             for (column, letter) in line.enumerated() {
                 let position = CGPoint(x: (112 * column) + 512, y: (112 * row) + 16)
                 
+                var node: SKSpriteNode
+                
                 if letter == "x" {
                     // load wall
-                    let node = SKSpriteNode(imageNamed: "block")
-                    node.setScale(1.8)
-                    node.position = position
-                    node.physicsBody = SKPhysicsBody(rectangleOf: node.size)
+                    node = createSprite(type: "block", position: position)
+                    
                     node.physicsBody?.categoryBitMask = CollisionTypes.wall.rawValue
-                    node.physicsBody?.isDynamic = false // turn off physics actions
-                    addChild(node)
                 } else if letter == "v" {
                     // load vortex
-                    let node = SKSpriteNode(imageNamed: "vortex")
-                    node.setScale(1.8)
-                    node.name = "vortex" // need to know for collisions later
-                    node.position = position
+                    
+                    node = createSprite(type: "vortex", position: position)
+                    
                     node.run(SKAction.repeatForever(SKAction.rotate(byAngle: .pi, duration: 1)))
-                    node.physicsBody = SKPhysicsBody(circleOfRadius: node.size.width / 2)
-                    node.physicsBody?.isDynamic = false
                     node.physicsBody?.categoryBitMask = CollisionTypes.vortex.rawValue
                     node.physicsBody?.contactTestBitMask = CollisionTypes.player.rawValue // want to be told when touched by player
                     node.physicsBody?.collisionBitMask = 0 // bounces off nothing
-                    addChild(node)
                 } else if letter == "s" {
                     // load start
-                    let node = SKSpriteNode(imageNamed: "star")
-                    node.setScale(1.8)
-                    node.name = "star"
-                    node.position = position
-                    node.physicsBody = SKPhysicsBody(circleOfRadius: node.size.width / 2)
-                    node.physicsBody?.isDynamic = false
+                    node = createSprite(type: "star", position: position)
                     
                     node.physicsBody?.categoryBitMask = CollisionTypes.star.rawValue
                     node.physicsBody?.contactTestBitMask = CollisionTypes.player.rawValue
                     node.physicsBody?.collisionBitMask = 0
-                    addChild(node)
                 } else if letter == "f" {
                     // load finish point
-                    let node = SKSpriteNode(imageNamed: "finish")
-                    node.setScale(1.8)
-                    node.name = "finish"
-                    node.position = position
-                    node.physicsBody = SKPhysicsBody(circleOfRadius: node.size.width / 2)
-                    node.physicsBody?.isDynamic = false
+                    node = createSprite(type: "finish", position: position)
                     
                     node.physicsBody?.categoryBitMask = CollisionTypes.finish.rawValue
                     node.physicsBody?.contactTestBitMask = CollisionTypes.player.rawValue
                     node.physicsBody?.collisionBitMask = 0
-                    addChild(node)
                 } else if letter == " " {
                     // this is an empty space - do nothing!
+                    continue
                 } else {
                     fatalError("Unknown level letter: \(letter)")
                 }
+                addChild(node)
             }
         }
+    }
+    
+    func createSprite(type: String, position: CGPoint) -> SKSpriteNode {
+        let node = SKSpriteNode(imageNamed: type)
+        node.setScale(1.8)
+        node.position = position
+        node.name = type
+        
+        if type == "block" {
+            node.physicsBody = SKPhysicsBody(rectangleOf: node.size) // rectangular
+        } else {
+            node.physicsBody = SKPhysicsBody(circleOfRadius: node.size.width / 2) // circular
+        }
+        
+        node.physicsBody?.isDynamic = false
+        
+        return node
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {

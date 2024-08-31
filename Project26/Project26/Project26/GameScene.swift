@@ -28,6 +28,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     var isGameOver = false
     
+    let levels = ["level1", "level2"]
+    var currentLevel = 0
+    
     enum CollisionTypes: UInt32 {
         case player = 1
         case wall = 2
@@ -48,7 +51,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         background.zPosition = -1
         addChild(background)
         
-        loadLevel()
+        loadLevel(level: levels[currentLevel])
         createPlayer()
         
         physicsWorld.gravity = .zero
@@ -67,14 +70,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         score = 0
     }
     
-    func loadLevel() {
+    func loadLevel(level: String) {
         
-        guard let levelURL = Bundle.main.url(forResource: "level1", withExtension: "txt") else {
-            fatalError("Could not find level1.txt in the app bundle")
+        guard let levelURL = Bundle.main.url(forResource: level, withExtension: "txt") else {
+            fatalError("Could not find \(level).txt in the app bundle")
         }
         
         guard let levelString = try? String(contentsOf: levelURL) else {
-            fatalError("Could not load level1.txt as a string")
+            fatalError("Could not load \(level).txt as a string")
         }
         
         let lines = levelString.components(separatedBy: "\n")
@@ -220,6 +223,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             score += 1
         } else if node.name == "finish" {
             // go to next level
+            currentLevel += 1
+            let nextLevelLabel = SKLabelNode(fontNamed: "Chalkduster")
+            nextLevelLabel.text = "Passed! Next Level..."
+            nextLevelLabel.fontSize = 48
+            nextLevelLabel.position = CGPoint(x: width/2, y: height/2)
+            nextLevelLabel.zPosition = 3
+            addChild(nextLevelLabel)
+            let fadeOut = SKAction.fadeOut(withDuration: 3)
+            nextLevelLabel.run(fadeOut) {
+                nextLevelLabel.removeFromParent()
+            }
+            removeAllChildren()
+            
+            loadLevel(level: levels[currentLevel % levels.count])
+            let background = SKSpriteNode(imageNamed: "background")
+            background.position = CGPoint(x: width/2, y: height/2)
+            background.blendMode = .replace
+            background.size.width = CGFloat(width)
+            background.size.height = CGFloat(height)
+            background.zPosition = -1
+            addChild(background)
+            createPlayer()
         }
     }
 }

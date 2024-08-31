@@ -15,6 +15,7 @@
 		B52DA0C52C81FFF9000A4FCF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B52DA0C42C81FFF9000A4FCF /* Assets.xcassets */; };
 		B52DA0C82C81FFF9000A4FCF /* Base in Resources */ = {isa = PBXBuildFile; fileRef = B52DA0C72C81FFF9000A4FCF /* Base */; };
 		B52DA0CF2C8201AD000A4FCF /* level1.txt in Resources */ = {isa = PBXBuildFile; fileRef = B52DA0CE2C8201AD000A4FCF /* level1.txt */; };
+		B52DA0D12C83CB0F000A4FCF /* level2.txt in Resources */ = {isa = PBXBuildFile; fileRef = B52DA0D02C83CB0E000A4FCF /* level2.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 		B52DA0C42C81FFF9000A4FCF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B52DA0C72C81FFF9000A4FCF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B52DA0CE2C8201AD000A4FCF /* level1.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = level1.txt; path = "../../project26-files/level1.txt"; sourceTree = "<group>"; };
+		B52DA0D02C83CB0E000A4FCF /* level2.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = level2.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +69,7 @@
 				B52DA0C42C81FFF9000A4FCF /* Assets.xcassets */,
 				B52DA0C62C81FFF9000A4FCF /* LaunchScreen.storyboard */,
 				B52DA0CE2C8201AD000A4FCF /* level1.txt */,
+				B52DA0D02C83CB0E000A4FCF /* level2.txt */,
 			);
 			path = Project26;
 			sourceTree = "<group>";
@@ -131,6 +134,7 @@
 			files = (
 				B52DA0CF2C8201AD000A4FCF /* level1.txt in Resources */,
 				B52DA0BA2C81FFF8000A4FCF /* GameScene.sks in Resources */,
+				B52DA0D12C83CB0F000A4FCF /* level2.txt in Resources */,
 				B52DA0C32C81FFF8000A4FCF /* Base in Resources */,
 				B52DA0C52C81FFF9000A4FCF /* Assets.xcassets in Resources */,
 				B52DA0C82C81FFF9000A4FCF /* Base in Resources */,

@@ -48,10 +48,38 @@ class DetailViewController: UIViewController {
     
     @objc func shareTapped() { // 'objc' for this method, compile it for swift use BUT also make visible to objc code like UIBarButtonItem
         
-        guard let image = imageView.image?.jpegData(compressionQuality: 0.8) else {
-            print("no image found")
-            return
+//        guard let image = imageView.image?.jpegData(compressionQuality: 0.8) else {
+//            print("no image found")
+//            return
+//        }
+        
+        guard let imageContent = imageView.image else {
+            fatalError("Couldn't pull image from imageView")
         }
+        
+        let renderer = UIGraphicsImageRenderer(size: imageContent.size)
+        
+        let image = renderer.image { context in
+            
+            // draw original image
+            imageContent.draw(in: CGRect(origin: .zero, size: imageContent.size))
+            
+            // draw text
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.alignment = .center
+            
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 64),
+                .paragraphStyle: paragraphStyle,
+                .foregroundColor: CGColor(red: 1, green: 0, blue: 0, alpha: 1)
+            ]
+            
+            let message = "COOL\nTATTOOS\n.COM"
+            
+            let attributedString = NSAttributedString(string: message, attributes: attrs)
+            attributedString.draw(with: CGRect(x: 300, y: 500, width: 500, height: 500), options: .usesLineFragmentOrigin, context: nil)
+        }
+        
         
         
         

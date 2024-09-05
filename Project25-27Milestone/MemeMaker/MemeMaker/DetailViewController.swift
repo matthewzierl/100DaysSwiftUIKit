@@ -20,10 +20,30 @@ class DetailViewController: UIViewController {
         
         imageView = UIImageView()
         imageView.image = meme.image
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
         
-        view = imageView
+        // add the view
+        view.addSubview(imageView)
+        
+        NSLayoutConstraint.activate([
+                imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                imageView.topAnchor.constraint(equalTo: view.topAnchor),
+                imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(shareMeme))
+        
         
         navigationItem.title = meme.title
+    }
+    
+    @objc func shareMeme(_ btn: UIBarButtonItem) {
+        guard let image = imageView.image else { return }
+        let ac = UIActivityViewController(activityItems: [image], applicationActivities: nil)
+        ac.popoverPresentationController?.barButtonItem = btn // For iPads
+        present(ac, animated: true)
     }
     
 

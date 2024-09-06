@@ -32,8 +32,8 @@ class NoteCollectionViewCell: UICollectionViewCell {
     override var isSelected: Bool {
         didSet {
             if isEditMode {
-                notSelectedImage.isHidden = isSelected
-                selectedImage.isHidden = !isSelected
+                notSelectedImage.isHidden = isSelected // circle
+                selectedImage.isHidden = !isSelected // checkmark circle
                 if isSelected {
                     noteView.layer.borderWidth = 3
                 } else {
@@ -63,7 +63,7 @@ class NoteCollectionViewCell: UICollectionViewCell {
         
         // draw textView to an image
         
-        let renderer = UIGraphicsImageRenderer(size: <#T##CGSize#>
+//        let renderer = UIGraphicsImageRenderer(size: <#T##CGSize#>
         
         
         

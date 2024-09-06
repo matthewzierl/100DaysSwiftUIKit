@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import LocalAuthentication
 
 class ComposeNoteController: UIViewController, UITextViewDelegate, UIImagePickerControllerDelegate & UINavigationControllerDelegate {
     
@@ -31,26 +32,71 @@ class ComposeNoteController: UIViewController, UITextViewDelegate, UIImagePicker
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         textView = UITextView()
+        view.backgroundColor = .systemBackground
         
-        
-        if let note = note {
-            textView.text = note.body
-        } else {
+        if note == nil { // if note doesn't exist yet, need to create empty one
+            print("Note was nil, creating a new one")
             note = Note()
             note!.dateModified = note!.dateModified
             let arr = [note!]
             allNotes.append(arr) // new note must be added, will sort later
         }
         
+        
+        if note!.isLocked { // prompt for biometric login
+            getAuthentication()
+        } else {
+            setupComposeNote()
+        }
+        
+        
+    }
+    
+    func getAuthentication() {
+        print("Note was locked... prompting...")
+        
+        let context = LAContext()
+        var error: NSError?
+        
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            let reason = "Identify Yourself"
+            
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { [weak self] success, authenticationError in
+                DispatchQueue.main.async {
+                    if success {
+                        self?.setupComposeNote()
+                    } else {
+                        // error
+                        let ac = UIAlertController(title: "Authentication Failed", message: "You could not be verified. Please try again.", preferredStyle: .alert)
+                        ac.addAction(UIAlertAction(title: "Okay", style: .default))
+                        self?.present(ac, animated: true)
+                    }
+                }
+            }
+        } else {
+            // no biometry
+            let ac = UIAlertController(title: "Biometry Unavailable", message: "Your device is not configured for biometrix authentication", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Ok", style: .default))
+            present(ac, animated: true)
+        }
+    }
+    
+    func setupComposeNote() {
+        
+        print("setting up note")
+        
+        
         let noteOptions = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(presentNoteOptions))
         let shareNote = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), style: .plain, target: self, action: #selector(shareNote))
+        let lockImage = note!.isLocked ? "lock" : "lock.open"
+        let lockNote = UIBarButtonItem(image: UIImage(systemName: lockImage), style: .plain, target: self, action: #selector(lockNote))
         
-        navigationItem.rightBarButtonItems = [noteOptions, shareNote]
+        navigationItem.rightBarButtonItems = [noteOptions, shareNote, lockNote]
         
+        textView.text = note!.body
         textView.delegate = self
-        
         view = textView
         
         delegate?.composeNoteControllerDidLoad(allNotes: allNotes)
@@ -144,7 +190,7 @@ class ComposeNoteController: UIViewController, UITextViewDelegate, UIImagePicker
     }
     
     @objc func showOptions() {
-        if (navigationItem.rightBarButtonItems?.count != 2) {
+        if (navigationItem.rightBarButtonItems?.count != 3) {
             navigationItem.rightBarButtonItems?.remove(at: 0)
         }
     }
@@ -152,7 +198,7 @@ class ComposeNoteController: UIViewController, UITextViewDelegate, UIImagePicker
     @objc func showEditingOptions() {
         
         let done = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(finishEditing))
-        if navigationItem.rightBarButtonItems?.count == 2 {
+        if navigationItem.rightBarButtonItems?.count == 3 {
             navigationItem.rightBarButtonItems?.insert(done, at: 0)
         }
     }
@@ -160,6 +206,24 @@ class ComposeNoteController: UIViewController, UITextViewDelegate, UIImagePicker
     @objc func finishEditing(_ button: UIBarButtonItem) {
         // dismiss keyboard
         textView.resignFirstResponder() // resign object that is currently receiving user input
+    }
+    
+    func unlockNote() {
+        
+    }
+    
+    @objc func lockNote(_ btn: UIBarButtonItem) {
+        guard let note = note else { return }
+        
+        if note.isLocked {
+            btn.image = UIImage(systemName: "lock.open")
+        } else {
+            btn.image = UIImage(systemName: "lock")
+        }
+        
+        note.isLocked.toggle()
+        saveNote()
+        
     }
     
     func saveNote() {

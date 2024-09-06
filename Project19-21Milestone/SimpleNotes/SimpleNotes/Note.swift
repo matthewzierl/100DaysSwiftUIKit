@@ -11,6 +11,7 @@ class Note: NSObject, Codable {
     
     var title: String = ""
     var body: String = ""
+    var isLocked = false
     var dateCreated: Date = Date.now
     var dateModified: Date = Date.now {
         didSet {

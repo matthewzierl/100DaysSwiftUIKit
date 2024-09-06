@@ -132,6 +132,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func setupToolbar() {
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         numNotesLabel.text = "\(allNotes.flatMap{$0}.count) Notes"
+        numNotesLabel.textAlignment = .center
         numNotesLabel.frame.size = CGSize(width: 100, height: 30)
         numNotesLabel.font = UIFont.systemFont(ofSize: 14)
         let numNotes = UIBarButtonItem(customView: numNotesLabel)
@@ -465,7 +466,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     func selectNotes() {
-        print("Select notes")
         if isCollectionView {
             collectionView.isEditing = true
             for case let note as NoteCollectionViewCell in collectionView.visibleCells {

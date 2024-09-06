@@ -11,11 +11,14 @@ import UIKit
 class ViewController: UIViewController {
     @IBOutlet var secret: UITextView!
     
+    let password = "123"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
         title = "Nothing to see here..."
+        
         
         let notificationCenter = NotificationCenter.default
         notificationCenter.addObserver(self, selector: #selector(adjustForKeyboard), name: UIResponder.keyboardWillHideNotification, object: nil)
@@ -24,6 +27,34 @@ class ViewController: UIViewController {
     }
 
     @IBAction func authenticateTapped(_ sender: Any) {
+        
+        // First try password
+        let ac = UIAlertController(title: "Enter Password", message: nil, preferredStyle: .alert)
+        ac.addTextField { field in
+            field.placeholder = "password"
+        }
+        ac.addAction(UIAlertAction(title: "Submit", style: .default, handler: { [weak self] action in
+            
+            let input = ac.textFields?[0].text ?? ""
+            if input == self?.password {
+                // unlock the message
+                self?.unlockSecretMessage()
+            } else {
+                // prompt user if they want to try biometrics
+                
+                let ac = UIAlertController(title: "Incorrect Password.", message: "Try Biometric Login?", preferredStyle: .alert)
+                ac.addAction(UIAlertAction(title: "Yes", style: .default, handler: { action in
+                    self?.initiateBiometricLogin()
+                }))
+                ac.addAction(UIAlertAction(title: "No", style: .cancel))
+                self?.present(ac, animated: true)
+            }
+        }))
+        
+        present(ac, animated: true)
+    }
+    
+    func initiateBiometricLogin() {
         let context = LAContext()
         var error: NSError?
         
@@ -73,6 +104,7 @@ class ViewController: UIViewController {
     func unlockSecretMessage() {
         secret.isHidden = false
         title = "Secret Stuff!"
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(saveSecretMessage))
         
         secret.text = KeychainWrapper.standard.string(forKey: "SecretMessage") ?? ""
         
@@ -84,9 +116,11 @@ class ViewController: UIViewController {
         KeychainWrapper.standard.set(secret.text, forKey: "SecretMessage")
         secret.resignFirstResponder()
         secret.isHidden = true
+        navigationItem.rightBarButtonItem = nil
         
         title = "Nothing to see here..."
     }
+    
     
 }
 

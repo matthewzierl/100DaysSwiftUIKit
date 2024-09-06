@@ -54,10 +54,16 @@ class NoteCollectionViewCell: UICollectionViewCell {
     private func setupViews() {
         // Configure noteView
         noteView = UIView()
-        noteView.backgroundColor = .systemCyan // Example background color
+        noteView.backgroundColor = .systemRed
+        
+        
         
         textView = UITextView()
         textView.text = cellNote?.body
+        
+        // draw textView to an image
+        
+        let renderer = UIGraphicsImageRenderer(size: <#T##CGSize#>
         
         
         
@@ -80,13 +86,13 @@ class NoteCollectionViewCell: UICollectionViewCell {
         // Configure selection overlays
         notSelectedImage = UIImageView(image: UIImage(systemName: "circle"))
         notSelectedImage.isHidden = true // Initially hidden
-        notSelectedImage.layer.position = CGPoint(x: 57.5, y: 60)
+        notSelectedImage.layer.position = CGPoint(x: 56, y: 60)
         contentView.addSubview(notSelectedImage)
         
         
         selectedImage = UIImageView(image: UIImage(systemName: "checkmark.circle"))
         selectedImage.isHidden = true
-        selectedImage.layer.position = CGPoint(x: 57.5, y: 60)
+        selectedImage.layer.position = CGPoint(x: 56, y: 60)
         contentView.addSubview(selectedImage)
         
         

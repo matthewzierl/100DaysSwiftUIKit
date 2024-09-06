@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-class ComposeNoteController: UIViewController, UITextViewDelegate {
+class ComposeNoteController: UIViewController, UITextViewDelegate, UIImagePickerControllerDelegate & UINavigationControllerDelegate {
     
     var textView: UITextView!
     
@@ -33,6 +33,7 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
         super.viewDidLoad()
         
         textView = UITextView()
+        
         
         if let note = note {
             textView.text = note.body
@@ -84,8 +85,32 @@ class ComposeNoteController: UIViewController, UITextViewDelegate {
         present(ac, animated: true)
     }
     
-    @objc func presentImageOptions(_ barButton: UIBarButtonItem) {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         
+        dismiss(animated: true)
+        guard let image = info[.originalImage] as? UIImage else {
+            return
+        }
+        
+        // resize the image
+        let targetWidth: CGFloat = textView.frame.size.width - 150 // Adjust as needed for padding
+        let scaleFactor = targetWidth / image.size.width
+        let targetHeight = image.size.height * scaleFactor
+
+        let resizedImage = UIGraphicsImageRenderer(size: CGSize(width: targetWidth, height: targetHeight)).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: CGSize(width: targetWidth, height: targetHeight)))
+        }
+        
+        let attachment = NSTextAttachment()
+        attachment.image = resizedImage
+        let imageString = NSAttributedString(attachment: attachment)
+        textView.textStorage.insert(imageString, at: textView.selectedRange.location)
+    }
+    
+    @objc func presentImageOptions(_ barButton: UIBarButtonItem) {
+        let picker = UIImagePickerController()
+        picker.delegate = self
+        present(picker, animated: true)
     }
     
     @objc func composeNote(_ barButton: UIBarButtonItem) {

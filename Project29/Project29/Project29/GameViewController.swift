@@ -21,6 +21,13 @@ class GameViewController: UIViewController {
     
     @IBOutlet var playerNumber: UILabel!
     
+    @IBOutlet var player1ScoreLabel: UILabel!
+    @IBOutlet var player2ScoreLabel: UILabel!
+    @IBOutlet var windLabel: UILabel!
+    
+    var player1Score = 0
+    var player2Score = 0
+    
     var currentGame: GameScene?
 
     override func viewDidLoad() {
@@ -47,6 +54,9 @@ class GameViewController: UIViewController {
         
         angleChanged(self)
         velocityChanged(self)
+        
+        player1ScoreLabel.text = "Score: \(player1Score)"
+        player2ScoreLabel.text = "Score: \(player2Score)"
     }
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
@@ -90,6 +100,25 @@ class GameViewController: UIViewController {
         angleLabel.isHidden = false
         velocityLabel.isHidden = false
         launchButton.isHidden = false
+    }
+    
+    func updateScore(player: Int) {
+        if player == 1 {
+            player1Score += 1
+            player1ScoreLabel.text = "Score: \(player1Score)"
+        } else {
+            player2Score += 1
+            player2ScoreLabel.text = "Score: \(player2Score)"
+        }
+    }
+    
+    func endGame() {
+        let label = UILabel()
+        label.frame = view.frame
+        label.font = UIFont(name: "Chalkduster", size: 128)
+        label.textAlignment = .center
+        label.text = "GAME OVER"
+        view.addSubview(label)
     }
     
 }
